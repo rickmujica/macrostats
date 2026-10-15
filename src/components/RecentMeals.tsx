@@ -1,6 +1,8 @@
+import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { Meal } from '@/storage/meals';
-import { StyleSheet, Text, View } from 'react-native';
+import { useGlobalStyles } from '@/styles/global';
+import { Text, View } from 'react-native';
 import MealItem from './MealItem';
 
 type RecentMealsProps = {
@@ -10,12 +12,14 @@ type RecentMealsProps = {
 
 export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const themeStyles = useGlobalStyles();
 
   return (
-    <View style={{ marginTop: 30 }}>
-      <Text style={styles.sectionTitle}>{t('recentMeals')}</Text>
+    <View>
+      <Text style={[themeStyles.sectionTitle, { color: colors.text }]}>{t('recentMeals')}</Text>
       {meals.length === 0 ? (
-        <Text style={styles.empty}>{t('noMeals')}</Text>
+        <Text style={themeStyles.empty}>{t('noMeals')}</Text>
       ) : (
         meals
           .slice(0, 5)
@@ -28,6 +32,7 @@ export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
               protein={meal.protein}
               carbs={meal.carbs}
               fat={meal.fat}
+              createdAt={meal.createdAt}
               onDelete={onDelete}
             />
           ))
@@ -35,16 +40,3 @@ export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 16,
-  },
-  empty: {
-    color: '#a0a0b0',
-    fontSize: 14,
-  },
-});

@@ -1,3 +1,4 @@
+import { roundAmount } from '@/utils/numbers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Meal = {
@@ -10,9 +11,11 @@ export type Meal = {
   createdAt: string;
 };
 
+export type MacroTotals = Pick<Meal, 'calories' | 'protein' | 'carbs' | 'fat'>;
+
 const MEALS_KEY = 'meals';
 
-const sameDay = (dateA: Date, dateB: Date) =>
+export const sameDay = (dateA: Date, dateB: Date) =>
   dateA.getFullYear() === dateB.getFullYear() &&
   dateA.getMonth() === dateB.getMonth() &&
   dateA.getDate() === dateB.getDate();
@@ -28,6 +31,25 @@ const getWeekStart = (date: Date) => {
 export const getMeals = async (): Promise<Meal[]> => {
   const data = await AsyncStorage.getItem(MEALS_KEY);
   return data ? JSON.parse(data) : [];
+};
+
+export const sumMeals = (meals: Meal[]): MacroTotals => {
+  const totals = meals.reduce(
+    (acc, meal) => ({
+      calories: acc.calories + meal.calories,
+      protein: acc.protein + meal.protein,
+      carbs: acc.carbs + meal.carbs,
+      fat: acc.fat + meal.fat,
+    }),
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+
+  return {
+    calories: roundAmount(totals.calories),
+    protein: roundAmount(totals.protein),
+    carbs: roundAmount(totals.carbs),
+    fat: roundAmount(totals.fat),
+  };
 };
 
 export const getMealsByDate = async (date: Date): Promise<Meal[]> => {

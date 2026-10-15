@@ -23,8 +23,7 @@ const getDeviceLocale = (): string => {
   return String(deviceLocale).replace("_", "-");
 };
 
-const locales = ["en", "es"] as const;
-type Locale = (typeof locales)[number];
+type Locale = "en" | "es";
 
 const normalizeLocale = (value?: string): Locale => {
   return value?.startsWith("es") ? "es" : "en";
@@ -120,6 +119,15 @@ type TranslationMap = {
   settingsSaved: string;
   themeUpdated: string;
   pickADate: string;
+  invalidNumber: string;
+  clearAllTitle: string;
+  clearAllMessage: string;
+  recommendedGoals: string;
+  goalsCalculated: string;
+  remindersUnsupported: string;
+  remindersBlocked: string;
+  remindersScheduleError: string;
+  openSettings: string;
 };
 
 type TranslationKey = keyof TranslationMap;
@@ -213,6 +221,15 @@ const translations: Record<Locale, TranslationMap> = {
     settingsSaved: "Settings saved successfully!",
     themeUpdated: "Theme updated successfully.",
     pickADate: "Pick a date",
+    invalidNumber: "Amounts must be positive numbers, like 12 or 12.5.",
+    clearAllTitle: "Delete all meals?",
+    clearAllMessage: "This permanently deletes every meal you've logged, on every day.",
+    recommendedGoals: "Calculate goals from profile",
+    goalsCalculated: "Your macro goals were filled in from your profile. Tap Save Settings to keep them.",
+    remindersBlocked: "Notifications are turned off for this app. Turn them on in Settings to get meal reminders.",
+    remindersScheduleError: "Reminders couldn't be scheduled, so they were turned off. Check that notifications are allowed for this app.",
+    openSettings: "Open Settings",
+    remindersUnsupported: "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
   },
   es: {
     appName: "MacroZone",
@@ -303,6 +320,15 @@ const translations: Record<Locale, TranslationMap> = {
     settingsSaved: "¡Configuración guardada con éxito!",
     themeUpdated: "Tema actualizado con éxito.",
     pickADate: "Elige una fecha",
+    invalidNumber: "Las cantidades deben ser números positivos, como 12 o 12,5.",
+    clearAllTitle: "¿Eliminar todas las comidas?",
+    clearAllMessage: "Esto elimina para siempre todas las comidas registradas, de todos los días.",
+    recommendedGoals: "Calcular metas desde el perfil",
+    goalsCalculated: "Tus metas de macros se completaron con tu perfil. Toca Guardar configuración para conservarlas.",
+    remindersBlocked: "Las notificaciones están desactivadas para esta app. Actívalas en Ajustes para recibir recordatorios.",
+    remindersScheduleError: "No se pudieron programar los recordatorios, así que se desactivaron. Revisa que las notificaciones estén permitidas para esta app.",
+    openSettings: "Abrir Ajustes",
+    remindersUnsupported: "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
   },
 };
 
