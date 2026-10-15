@@ -1,42 +1,72 @@
+import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
-import { deleteMeal, sameDay } from '@/storage/meals';
+import { deleteMeal, restoreMeal, sameDay, type Meal } from '@/storage/meals';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 
-type MealItemProps = {
-  id: string;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  createdAt: string;
-  onDelete: () => void;
+const SWIPE_ACTION_WIDTH = 96;
+
+type SwipeDeleteActionProps = {
+  drag: SharedValue<number>;
+  label: string;
+  color: string;
 };
 
-export default function MealItem({
-  id,
-  name,
-  calories,
-  protein,
-  carbs,
-  fat,
-  createdAt,
-  onDelete,
-}: MealItemProps) {
+// The swipeable only moves the row; the action has to follow the drag itself.
+function SwipeDeleteAction({ drag, label, color }: SwipeDeleteActionProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: drag.value + SWIPE_ACTION_WIDTH }],
+  }));
+
+  return (
+    <Animated.View style={[actionStyles.action, { backgroundColor: color }, animatedStyle]}>
+      <Ionicons name='trash-outline' size={20} color='#ffffff' />
+      <Text style={actionStyles.label}>{label}</Text>
+    </Animated.View>
+  );
+}
+
+const actionStyles = StyleSheet.create({
+  action: {
+    width: SWIPE_ACTION_WIDTH,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  label: {
+    color: '#ffffff',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+});
+
+type MealItemProps = {
+  meal: Meal;
+  /** Called after the meal is deleted or a deletion is undone. */
+  onChange: () => void;
+};
+
+export default function MealItem({ meal, onChange }: MealItemProps) {
+  const { id, name, calories, protein, carbs, fat, createdAt } = meal;
   const { t, locale } = useTranslation();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        swipeable: {
+          marginBottom: 10,
+        },
         container: {
           backgroundColor: colors.surface,
           borderRadius: 10,
           padding: 16,
-          marginBottom: 10,
           flexDirection: 'row',
           alignItems: 'center',
         },
@@ -72,39 +102,55 @@ export default function MealItem({
     ? time
     : `${created.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}, ${time}`;
 
-  const confirmDelete = () => {
-    Alert.alert(t('deleteMealTitle'), `${t('deleteMealMessage')} "${name}"?`, [
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('delete'),
-        style: 'destructive',
-        onPress: async () => {
-          await deleteMeal(id);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          onDelete();
+  const handleDelete = async () => {
+    const removed = await deleteMeal(id);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    onChange();
+
+    if (removed) {
+      showToast(t('mealDeletedToast').replace('{name}', removed.name), {
+        actionLabel: t('undo'),
+        onAction: async () => {
+          await restoreMeal(removed);
+          onChange();
         },
-      },
-    ]);
+      });
+    }
   };
 
   return (
-    <TouchableOpacity style={styles.container} onLongPress={confirmDelete}>
-      <View style={styles.details}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.macros}>
-          {calories} {t('calories').slice(0, 3).toLowerCase()} • {protein}g {t('protein').slice(0, 1)} • {carbs}g {t('carbs').slice(0, 1)} • {fat}g {t('fat').slice(0, 1)}
-        </Text>
-        <Text style={styles.time}>{loggedAt}</Text>
-      </View>
+    <Swipeable
+      containerStyle={styles.swipeable}
+      friction={2}
+      rightThreshold={60}
+      overshootRight={false}
+      onSwipeableOpen={handleDelete}
+      renderRightActions={(_progress, drag) => (
+        <SwipeDeleteAction drag={drag} label={t('delete')} color={colors.alert} />
+      )}
+    >
       <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={confirmDelete}
-        accessibilityRole='button'
-        accessibilityLabel={`${t('delete')} ${name}`}
-        hitSlop={8}
+        style={styles.container}
+        onPress={() => router.push({ pathname: '/meal/[id]', params: { id } })}
+        accessibilityHint={t('editMealHint')}
       >
-        <Ionicons name='trash-outline' size={20} color={colors.alert} />
+        <View style={styles.details}>
+          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.macros}>
+            {calories} {t('calories').slice(0, 3).toLowerCase()} • {protein}g {t('protein').slice(0, 1)} • {carbs}g {t('carbs').slice(0, 1)} • {fat}g {t('fat').slice(0, 1)}
+          </Text>
+          <Text style={styles.time}>{loggedAt}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          accessibilityRole='button'
+          accessibilityLabel={`${t('delete')} ${name}`}
+          hitSlop={8}
+        >
+          <Ionicons name='trash-outline' size={20} color={colors.alert} />
+        </TouchableOpacity>
       </TouchableOpacity>
-    </TouchableOpacity>
+    </Swipeable>
   );
 }

@@ -1,22 +1,60 @@
+import LabeledTextInput from '@/components/LabeledTextInput';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { UserProfile } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
+import { parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 type UserOnboardingProps = {
   onComplete: (profile: UserProfile) => void;
 };
+
+type OptionRowStyles = {
+  optionRow: object;
+  option: object;
+  optionSelected: object;
+  optionText: object;
+  selectedOptionText: object;
+};
+
+type OptionRowProps<T extends string> = {
+  options: { key: T; label: string }[];
+  selected: T;
+  onSelect: (value: T) => void;
+  styles: OptionRowStyles;
+};
+
+function OptionRow<T extends string>({ options, selected, onSelect, styles }: OptionRowProps<T>) {
+  return (
+    <View style={styles.optionRow}>
+      {options.map((option) => (
+        <TouchableOpacity
+          key={option.key}
+          style={[styles.option, selected === option.key && styles.optionSelected]}
+          onPress={() => onSelect(option.key)}
+          accessibilityRole='button'
+          accessibilityState={{ selected: selected === option.key }}
+        >
+          <Text style={selected === option.key ? styles.selectedOptionText : styles.optionText}>
+            {option.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
 
 export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const { t } = useTranslation();
@@ -25,19 +63,31 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        flex: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        content: {
+          paddingBottom: 40,
+        },
+        intro: {
+          fontSize: 15,
+          lineHeight: 21,
+          color: colors.textSecondary,
+          marginTop: 12,
+        },
         subtitle: {
-          fontSize: 16,
+          fontSize: 14,
           color: colors.textSecondary,
           marginTop: 24,
           marginBottom: 12,
         },
-        input: {
-          backgroundColor: colors.surface,
-          color: colors.text,
-          padding: 16,
-          borderRadius: 10,
-          fontSize: 16,
-          marginTop: 12,
+        row: {
+          flexDirection: 'row',
+          gap: 10,
+        },
+        rowInput: {
+          flex: 1,
         },
         optionRow: {
           flexDirection: 'row',
@@ -69,7 +119,6 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
           borderRadius: 10,
           alignItems: 'center',
           marginTop: 30,
-          marginBottom: 40,
         },
         buttonText: {
           color: colors.background,
@@ -80,144 +129,107 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
     [colors],
   );
 
-  const [age, setAge] = useState('25');
-  const [height, setHeight] = useState('170');
-  const [weight, setWeight] = useState('70');
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<UserProfile['gender']>('male');
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>('moderate');
   const [goal, setGoal] = useState<UserProfile['goal']>('maintain');
 
   const handleSubmit = () => {
-    const profile: UserProfile = {
-      age: Number(age),
-      height: Number(height),
-      weight: Number(weight),
-      gender,
-      activityLevel,
-      goal,
-    };
+    const parsedAge = parseAmount(age);
+    const parsedHeight = parseAmount(height);
+    const parsedWeight = parseAmount(weight);
 
-    if (
-      !profile.age ||
-      !profile.height ||
-      !profile.weight ||
-      profile.age <= 0 ||
-      profile.height <= 0 ||
-      profile.weight <= 0
-    ) {
-      Alert.alert(t('invalidProfile'));
+    if (!parsedAge || !parsedHeight || !parsedWeight) {
+      Alert.alert(t('error'), t('invalidProfile'));
       return;
     }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onComplete(profile);
+    onComplete({
+      age: parsedAge,
+      height: parsedHeight,
+      weight: parsedWeight,
+      gender,
+      activityLevel,
+      goal,
+    });
   };
 
   return (
-    <ScrollView style={themeStyles.container}>
-      <Text style={themeStyles.title}>{t('onboardingTitle')}</Text>
-      <Text style={styles.subtitle}>{t('goal')}</Text>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        style={themeStyles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps='handled'
+      >
+        <Text style={themeStyles.title}>{t('onboardingTitle')}</Text>
+        <Text style={styles.intro}>{t('onboardingIntro')}</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder={t('age')}
-        placeholderTextColor={colors.textSecondary}
-        value={age}
-        keyboardType='numeric'
-        onChangeText={setAge}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder={t('height')}
-        placeholderTextColor={colors.textSecondary}
-        value={height}
-        keyboardType='numeric'
-        onChangeText={setHeight}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder={t('weight')}
-        placeholderTextColor={colors.textSecondary}
-        value={weight}
-        keyboardType='numeric'
-        onChangeText={setWeight}
-      />
+        <View style={styles.row}>
+          <LabeledTextInput
+            label={t('age')}
+            keyboardType='decimal-pad'
+            value={age}
+            onChangeText={setAge}
+            containerStyle={styles.rowInput}
+          />
+          <LabeledTextInput
+            label={t('height')}
+            keyboardType='decimal-pad'
+            value={height}
+            onChangeText={setHeight}
+            containerStyle={styles.rowInput}
+          />
+        </View>
+        <LabeledTextInput
+          label={t('weight')}
+          keyboardType='decimal-pad'
+          value={weight}
+          onChangeText={setWeight}
+        />
 
-      <Text style={styles.subtitle}>{t('gender')}</Text>
-      <View style={styles.optionRow}>
-        {['male', 'female', 'other'].map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.option,
-              gender === option && styles.optionSelected,
-            ]}
-            onPress={() => setGender(option as UserProfile['gender'])}
-          >
-            <Text
-              style={
-                gender === option
-                  ? styles.selectedOptionText
-                  : styles.optionText
-              }
-            >
-              {t(option === 'male' ? 'genderMale' : option === 'female' ? 'genderFemale' : 'genderOther')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={styles.subtitle}>{t('gender')}</Text>
+        <OptionRow
+          options={[
+            { key: 'male', label: t('genderMale') },
+            { key: 'female', label: t('genderFemale') },
+            { key: 'other', label: t('genderOther') },
+          ]}
+          selected={gender}
+          onSelect={setGender}
+          styles={styles}
+        />
 
-      <Text style={styles.subtitle}>{t('activityLevel')}</Text>
-      <View style={styles.optionRow}>
-        {(['low', 'moderate', 'high'] as UserProfile['activityLevel'][]).map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.option,
-              activityLevel === option && styles.optionSelected,
-            ]}
-            onPress={() => setActivityLevel(option)}
-          >
-            <Text
-              style={
-                activityLevel === option
-                  ? styles.selectedOptionText
-                  : styles.optionText
-              }
-            >
-              {t(option === 'low' ? 'activityLow' : option === 'moderate' ? 'activityModerate' : 'activityHigh')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={styles.subtitle}>{t('activityLevel')}</Text>
+        <OptionRow
+          options={[
+            { key: 'low', label: t('activityLow') },
+            { key: 'moderate', label: t('activityModerate') },
+            { key: 'high', label: t('activityHigh') },
+          ]}
+          selected={activityLevel}
+          onSelect={setActivityLevel}
+          styles={styles}
+        />
 
-      <Text style={styles.subtitle}>{t('goal')}</Text>
-      <View style={styles.optionRow}>
-        {(['maintain', 'lose', 'gain'] as UserProfile['goal'][]).map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.option,
-              goal === option && styles.optionSelected,
-            ]}
-            onPress={() => setGoal(option)}
-          >
-            <Text
-              style={
-                goal === option
-                  ? styles.selectedOptionText
-                  : styles.optionText
-              }
-            >
-              {t(option === 'maintain' ? 'goalMaintain' : option === 'lose' ? 'goalLose' : 'goalGain')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={styles.subtitle}>{t('goal')}</Text>
+        <OptionRow
+          options={[
+            { key: 'maintain', label: t('goalMaintain') },
+            { key: 'lose', label: t('goalLose') },
+            { key: 'gain', label: t('goalGain') },
+          ]}
+          selected={goal}
+          onSelect={setGoal}
+          styles={styles}
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>{t('saveProfile')}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>{t('getStarted')}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

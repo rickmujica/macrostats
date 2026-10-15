@@ -40,9 +40,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name='meals'
         options={{
-          title: t('allMeals'),
+          title: t('history'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name='list' size={size} color={color} />
+            <Ionicons name='bar-chart' size={size} color={color} />
           ),
         }}
       />

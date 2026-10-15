@@ -1,27 +1,25 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
-import { Meal, sumMeals } from '@/storage/meals';
+import { Meal } from '@/storage/meals';
+import { buildDaySummary } from '@/utils/summary';
 import { Ionicons } from '@expo/vector-icons';
 import { Share, TouchableOpacity } from 'react-native';
 
 type ShareButtonProps = {
   meals: Meal[];
+  date: Date;
 };
 
-export default function ShareButton({ meals }: ShareButtonProps) {
-  const { t } = useTranslation();
+export default function ShareButton({ meals, date }: ShareButtonProps) {
+  const { t, locale } = useTranslation();
   const { colors } = useTheme();
 
   const handleShare = async () => {
-    const totals = sumMeals(meals);
-
-    await Share.share({
-      message: `${t('appName')} ${t('dailySummary')}\n\n${t('calories')}: ${totals.calories}\n${t('protein')}: ${totals.protein}g\n${t('carbs')}: ${totals.carbs}g\n${t('fat')}: ${totals.fat}g\n\n${t('mealsLabel')}: ${meals.length} ${t('loggedToday')}`,
-    });
+    await Share.share({ message: buildDaySummary(meals, date, locale) });
   };
 
   return (
-    <TouchableOpacity onPress={handleShare}>
+    <TouchableOpacity onPress={handleShare} accessibilityRole='button' accessibilityLabel={t('shareSummary')}>
       <Ionicons name='share-outline' size={24} color={colors.primary} />
     </TouchableOpacity>
   );

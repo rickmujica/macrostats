@@ -52,6 +52,11 @@ export const sumMeals = (meals: Meal[]): MacroTotals => {
   };
 };
 
+export const getMealById = async (id: string): Promise<Meal | undefined> => {
+  const meals = await getMeals();
+  return meals.find((meal) => meal.id === id);
+};
+
 export const getMealsByDate = async (date: Date): Promise<Meal[]> => {
   const meals = await getMeals();
   return meals.filter((meal) => sameDay(new Date(meal.createdAt), date));
@@ -82,10 +87,51 @@ export const addMeal = async (
   return newMeal;
 };
 
-export const deleteMeal = async (id: string): Promise<void> => {
+export const updateMeal = async (
+  id: string,
+  changes: Omit<Meal, 'id' | 'createdAt'>,
+): Promise<void> => {
   const meals = await getMeals();
+  const updated = meals.map((meal) => (meal.id === id ? { ...meal, ...changes } : meal));
+  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(updated));
+};
+
+/** Deletes a meal and returns it, so the deletion can be undone with restoreMeal. */
+export const deleteMeal = async (id: string): Promise<Meal | undefined> => {
+  const meals = await getMeals();
+  const removed = meals.find((meal) => meal.id === id);
   const filtered = meals.filter((meal) => meal.id !== id);
   await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(filtered));
+  return removed;
+};
+
+export const restoreMeal = async (meal: Meal): Promise<void> => {
+  const meals = await getMeals();
+  const restored = [meal, ...meals.filter((existing) => existing.id !== meal.id)].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(restored));
+};
+
+/** The most recently logged distinct foods (by name), newest first. */
+export const getRecentFoods = async (limit = 8): Promise<Meal[]> => {
+  const meals = await getMeals();
+  const seen = new Set<string>();
+  const foods: Meal[] = [];
+
+  for (const meal of meals) {
+    const key = meal.name.trim().toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    foods.push(meal);
+    if (foods.length === limit) {
+      break;
+    }
+  }
+
+  return foods;
 };
 
 export const clearAllMeals = async (): Promise<void> => {
