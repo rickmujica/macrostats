@@ -37,10 +37,33 @@ const getNotifications = (): NotificationsModule | null => {
   return notificationsModule;
 };
 
-export const requestPermissions = async (): Promise<boolean> => {
+export type PermissionResult = 'granted' | 'denied' | 'blocked';
+
+const isGranted = (
+  permissions: Awaited<ReturnType<NotificationsModule['getPermissionsAsync']>>,
+  Notifications: NotificationsModule,
+) =>
+  permissions.granted ||
+  permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+
+export const hasReminderPermission = async (): Promise<boolean> => {
   const Notifications = getNotifications();
   if (!Notifications) {
     return false;
+  }
+
+  return isGranted(await Notifications.getPermissionsAsync(), Notifications);
+};
+
+/**
+ * Asks for notification permission. Returns 'blocked' when the system won't
+ * show the prompt again (the user denied it before), so the only way back is
+ * the device's Settings app.
+ */
+export const requestPermissions = async (): Promise<PermissionResult> => {
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    return 'denied';
   }
 
   // Android 13+ only shows the permission prompt once a channel exists.
@@ -52,12 +75,18 @@ export const requestPermissions = async (): Promise<boolean> => {
   }
 
   const current = await Notifications.getPermissionsAsync();
-  if (current.granted) {
-    return true;
+  if (isGranted(current, Notifications)) {
+    return 'granted';
+  }
+  if (!current.canAskAgain) {
+    return 'blocked';
   }
 
-  const { granted } = await Notifications.requestPermissionsAsync();
-  return granted;
+  const requested = await Notifications.requestPermissionsAsync();
+  if (isGranted(requested, Notifications)) {
+    return 'granted';
+  }
+  return requested.canAskAgain ? 'denied' : 'blocked';
 };
 
 const reminderText = (item: ReminderScheduleItem) => {
@@ -70,27 +99,33 @@ const reminderText = (item: ReminderScheduleItem) => {
   return { title: item.label, body: item.body };
 };
 
-export const scheduleMealReminders = async (schedule: ReminderScheduleItem[]) => {
+/** Schedules the daily reminders. Returns false if they couldn't be scheduled. */
+export const scheduleMealReminders = async (schedule: ReminderScheduleItem[]): Promise<boolean> => {
   const Notifications = getNotifications();
-  if (!Notifications) {
-    return;
+  if (!Notifications || !(await hasReminderPermission())) {
+    return false;
   }
 
-  await Notifications.cancelAllScheduledNotificationsAsync();
-
-  await Promise.all(
-    schedule.map((item) =>
-      Notifications.scheduleNotificationAsync({
-        content: reminderText(item),
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour: item.hour,
-          minute: item.minute,
-          channelId: REMINDER_CHANNEL_ID,
-        },
-      }),
-    ),
-  );
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Promise.all(
+      schedule.map((item) =>
+        Notifications.scheduleNotificationAsync({
+          content: reminderText(item),
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DAILY,
+            hour: item.hour,
+            minute: item.minute,
+            channelId: REMINDER_CHANNEL_ID,
+          },
+        }),
+      ),
+    );
+    return true;
+  } catch {
+    await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+    return false;
+  }
 };
 
 export const cancelMealReminders = async () => {

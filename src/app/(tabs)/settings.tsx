@@ -13,6 +13,7 @@ import {
 import { useGlobalStyles } from '@/styles/global';
 import {
   cancelMealReminders,
+  hasReminderPermission,
   remindersSupported,
   requestPermissions,
   scheduleMealReminders,
@@ -22,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Switch,
@@ -73,7 +75,12 @@ export default function SettingsScreen() {
       setProtein(settings.goals.protein.toString());
       setCarbs(settings.goals.carbs.toString());
       setFat(settings.goals.fat.toString());
-      setRemindersEnabled(settings.remindersEnabled);
+      // If notification permission was revoked, show reminders as off.
+      const remindersOn = settings.remindersEnabled && (await hasReminderPermission());
+      setRemindersEnabled(remindersOn);
+      if (remindersOn !== settings.remindersEnabled) {
+        await updateSettings({ remindersEnabled: remindersOn });
+      }
       setReminderSchedule(settings.reminderSchedule);
       setLocale(settings.locale);
       setAppLocale(settings.locale);
@@ -108,7 +115,7 @@ export default function SettingsScreen() {
     await updateSettings({ locale: nextLocale });
     if (remindersEnabled) {
       // Reschedule so reminder text matches the new language.
-      await scheduleMealReminders(reminderSchedule);
+      await rescheduleOrTurnOff(reminderSchedule);
     }
   };
 
@@ -117,25 +124,50 @@ export default function SettingsScreen() {
     await setAppTheme(nextTheme);
   };
 
+  const turnRemindersOff = async () => {
+    await cancelMealReminders();
+    setRemindersEnabled(false);
+    await updateSettings({ remindersEnabled: false });
+  };
+
+  const rescheduleOrTurnOff = async (schedule: ReminderScheduleItem[]) => {
+    if (!(await scheduleMealReminders(schedule))) {
+      await turnRemindersOff();
+      Alert.alert(t('remindersLabel'), t('remindersScheduleError'));
+    }
+  };
+
   const toggleReminders = async (value: boolean) => {
-    if (value && !remindersSupported) {
+    if (!value) {
+      await turnRemindersOff();
+      return;
+    }
+
+    if (!remindersSupported) {
       Alert.alert(t('remindersLabel'), t('remindersUnsupported'));
       return;
     }
 
-    if (value) {
-      const granted = await requestPermissions();
-      if (!granted) {
-        Alert.alert(t('error'), t('reminderEnabledError'));
-        return;
-      }
-      await scheduleMealReminders(reminderSchedule);
-    } else {
-      await cancelMealReminders();
+    const permission = await requestPermissions();
+    if (permission === 'blocked') {
+      Alert.alert(t('remindersLabel'), t('remindersBlocked'), [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('openSettings'), onPress: () => Linking.openSettings() },
+      ]);
+      return;
+    }
+    if (permission === 'denied') {
+      Alert.alert(t('error'), t('reminderEnabledError'));
+      return;
     }
 
-    setRemindersEnabled(value);
-    await updateSettings({ remindersEnabled: value });
+    if (!(await scheduleMealReminders(reminderSchedule))) {
+      Alert.alert(t('remindersLabel'), t('remindersScheduleError'));
+      return;
+    }
+
+    setRemindersEnabled(true);
+    await updateSettings({ remindersEnabled: true });
   };
 
   const changeReminderTime = async (id: string, nextDate: Date) => {
@@ -148,7 +180,7 @@ export default function SettingsScreen() {
     setReminderSchedule(nextSchedule);
     await updateSettings({ reminderSchedule: nextSchedule });
     if (remindersEnabled) {
-      await scheduleMealReminders(nextSchedule);
+      await rescheduleOrTurnOff(nextSchedule);
     }
   };
 
