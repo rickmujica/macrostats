@@ -5,20 +5,33 @@ import { UserProfile } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
 import { parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
-type UserOnboardingProps = {
-  onComplete: (profile: UserProfile) => void;
+export type ProfileSubmitOptions = {
+  /** Whether the person asked to recalculate their macro goals from this profile. */
+  recalculateGoals: boolean;
+};
+
+type ProfileFormProps = {
+  title: string;
+  intro?: string;
+  submitLabel: string;
+  initialProfile?: UserProfile;
+  headerAction?: ReactNode;
+  /** Shows a switch for recalculating goals; onboarding always uses the calculated goals. */
+  showRecalculateOption?: boolean;
+  onSubmit: (profile: UserProfile, options: ProfileSubmitOptions) => void;
 };
 
 type OptionRowStyles = {
@@ -56,7 +69,15 @@ function OptionRow<T extends string>({ options, selected, onSelect, styles }: Op
   );
 }
 
-export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
+export default function ProfileForm({
+  title,
+  intro,
+  submitLabel,
+  initialProfile,
+  headerAction,
+  showRecalculateOption = false,
+  onSubmit,
+}: ProfileFormProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const themeStyles = useGlobalStyles();
@@ -113,6 +134,24 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
           color: colors.background,
           fontWeight: '700',
         },
+        switchRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          marginTop: 28,
+        },
+        switchText: {
+          flex: 1,
+        },
+        switchLabel: {
+          color: colors.text,
+          fontSize: 16,
+        },
+        switchHint: {
+          color: colors.textSecondary,
+          fontSize: 12,
+          marginTop: 4,
+        },
         button: {
           backgroundColor: colors.primary,
           padding: 16,
@@ -129,12 +168,15 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
     [colors],
   );
 
-  const [age, setAge] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [gender, setGender] = useState<UserProfile['gender']>('male');
-  const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>('moderate');
-  const [goal, setGoal] = useState<UserProfile['goal']>('maintain');
+  const [age, setAge] = useState(initialProfile ? String(initialProfile.age) : '');
+  const [height, setHeight] = useState(initialProfile ? String(initialProfile.height) : '');
+  const [weight, setWeight] = useState(initialProfile ? String(initialProfile.weight) : '');
+  const [gender, setGender] = useState<UserProfile['gender']>(initialProfile?.gender ?? 'male');
+  const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>(
+    initialProfile?.activityLevel ?? 'moderate',
+  );
+  const [goal, setGoal] = useState<UserProfile['goal']>(initialProfile?.goal ?? 'maintain');
+  const [recalculateGoals, setRecalculateGoals] = useState(true);
 
   const handleSubmit = () => {
     const parsedAge = parseAmount(age);
@@ -147,14 +189,17 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
     }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onComplete({
-      age: parsedAge,
-      height: parsedHeight,
-      weight: parsedWeight,
-      gender,
-      activityLevel,
-      goal,
-    });
+    onSubmit(
+      {
+        age: parsedAge,
+        height: parsedHeight,
+        weight: parsedWeight,
+        gender,
+        activityLevel,
+        goal,
+      },
+      { recalculateGoals: showRecalculateOption ? recalculateGoals : true },
+    );
   };
 
   return (
@@ -164,8 +209,11 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps='handled'
       >
-        <Text style={themeStyles.title}>{t('onboardingTitle')}</Text>
-        <Text style={styles.intro}>{t('onboardingIntro')}</Text>
+        <View style={themeStyles.header}>
+          <Text style={themeStyles.title}>{title}</Text>
+          {headerAction}
+        </View>
+        {intro ? <Text style={styles.intro}>{intro}</Text> : null}
 
         <View style={styles.row}>
           <LabeledTextInput
@@ -226,8 +274,22 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
           styles={styles}
         />
 
+        {showRecalculateOption && (
+          <View style={styles.switchRow}>
+            <View style={styles.switchText}>
+              <Text style={styles.switchLabel}>{t('recalculateGoalsLabel')}</Text>
+              <Text style={styles.switchHint}>{t('recalculateGoalsHint')}</Text>
+            </View>
+            <Switch
+              value={recalculateGoals}
+              onValueChange={setRecalculateGoals}
+              trackColor={{ false: colors.surface, true: colors.primary }}
+            />
+          </View>
+        )}
+
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>{t('getStarted')}</Text>
+          <Text style={styles.buttonText}>{submitLabel}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

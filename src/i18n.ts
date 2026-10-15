@@ -153,6 +153,13 @@ type TranslationMap = {
   nextWeek: string;
   weeklyAverage: string;
   noMealsWeek: string;
+  yourProfile: string;
+  editProfileHint: string;
+  ageYears: string;
+  profileSaved: string;
+  profileAndGoalsSaved: string;
+  recalculateGoalsLabel: string;
+  recalculateGoalsHint: string;
 };
 
 type TranslationKey = keyof TranslationMap;
@@ -283,6 +290,13 @@ const translations: Record<Locale, TranslationMap> = {
     nextWeek: "Next week",
     weeklyAverage: "Average on logged days: {calories} kcal",
     noMealsWeek: "No meals logged this week.",
+    yourProfile: "Your profile",
+    editProfileHint: "Opens your profile to edit it",
+    ageYears: "{age} years",
+    profileSaved: "Profile saved",
+    profileAndGoalsSaved: "Profile saved and goals updated",
+    recalculateGoalsLabel: "Update my macro goals",
+    recalculateGoalsHint: "Recalculates calories, protein, carbs and fat from this profile.",
     remindersUnsupported:
       "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
   },
@@ -413,6 +427,13 @@ const translations: Record<Locale, TranslationMap> = {
     nextWeek: "Semana siguiente",
     weeklyAverage: "Promedio en días registrados: {calories} kcal",
     noMealsWeek: "No hay comidas registradas esta semana.",
+    yourProfile: "Tu perfil",
+    editProfileHint: "Abre tu perfil para editarlo",
+    ageYears: "{age} años",
+    profileSaved: "Perfil guardado",
+    profileAndGoalsSaved: "Perfil guardado y metas actualizadas",
+    recalculateGoalsLabel: "Actualizar mis metas de macros",
+    recalculateGoalsHint: "Recalcula calorías, proteínas, carbohidratos y grasas con este perfil.",
     remindersUnsupported:
       "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
   },

@@ -11,7 +11,8 @@ A React Native app built with [Expo](https://expo.dev) (SDK 56) for tracking dai
 - **Edit and delete**: tap a meal to edit it. Swipe it left or tap the trash icon to delete it, with an **Undo** button in the confirmation.
 - **History**: a weekly bar chart of calories against your goal (bars turn red over goal), the average on logged days, and the meals for any selected day.
 - **Share or copy** a plain-text summary of the selected day.
-- **Settings**: macro goals (or "Calculate goals from profile"), profile, English or Spanish, light, dark or system theme, and daily lunch and dinner reminders.
+- **Profile**: edit age, height, weight, gender, activity and goal any time from Settings → Your profile, and optionally recalculate your macro goals from it.
+- **Settings**: macro goals (or "Calculate goals from profile"), English or Spanish, light, dark or system theme, and daily lunch and dinner reminders.
 
 ## Requirements
 
@@ -54,8 +55,9 @@ src/
     (tabs)/index.tsx    Home: daily dashboard with day navigation
     (tabs)/add-meal.tsx Add Meal (recent foods, calories from macros)
     (tabs)/meals.tsx    History: weekly chart and meals per day
-    (tabs)/settings.tsx Goals, profile, language, theme, reminders
+    (tabs)/settings.tsx Goals, language, theme, reminders, link to profile
     meal/[id].tsx       Edit Meal (modal)
+    profile.tsx         Edit profile (modal)
   components/           UI pieces (MealForm, MealItem, WeekChart, Toast, ...)
   hooks/useTheme.tsx    Light, dark and system theme
   i18n.ts               English and Spanish strings
@@ -72,6 +74,10 @@ npx tsc --noEmit
 ```bash
 npm run lint
 ```
+
+## Roadmap
+
+- **Scan a meal from a photo**: take or pick a photo on Add Meal and get an estimated name, calories and macros to review before saving. The likely approach is a vision AI model behind a small server (so no API key ships in the app), with the estimate filling the existing form. Alternatives considered: the Passio Nutrition-AI SDK (needs a development build, paid per scan) and the LogMeal REST API. iOS 27's camera reads packaged nutrition labels into Apple Health but doesn't expose meal-photo estimates to other apps.
 
 ## Branches
 

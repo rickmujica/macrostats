@@ -1,7 +1,7 @@
 import { ToastProvider } from '@/components/Toast';
-import UserOnboarding from '@/components/UserOnboarding';
+import ProfileForm from '@/components/ProfileForm';
 import { ThemeProvider, useTheme } from '@/hooks/useTheme';
-import { setAppLocale } from '@/i18n';
+import { setAppLocale, useTranslation } from '@/i18n';
 import { calculateGoals, getSettings, updateSettings, type UserProfile } from '@/storage/settings';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function AppContent() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -37,13 +38,21 @@ function AppContent() {
   }
 
   if (!onboardingComplete) {
-    return <UserOnboarding onComplete={finishOnboarding} />;
+    return (
+      <ProfileForm
+        title={t('onboardingTitle')}
+        intro={t('onboardingIntro')}
+        submitLabel={t('getStarted')}
+        onSubmit={finishOnboarding}
+      />
+    );
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name='(tabs)' />
       <Stack.Screen name='meal/[id]' options={{ presentation: 'modal' }} />
+      <Stack.Screen name='profile' options={{ presentation: 'modal' }} />
     </Stack>
   );
 }
