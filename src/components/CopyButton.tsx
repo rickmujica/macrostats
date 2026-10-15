@@ -1,27 +1,27 @@
+import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
-import { Meal, sumMeals } from '@/storage/meals';
+import { Meal } from '@/storage/meals';
+import { buildDaySummary } from '@/utils/summary';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 type CopyButtonProps = {
   meals: Meal[];
+  date: Date;
 };
 
-export default function CopyButton({ meals }: CopyButtonProps) {
-  const { t } = useTranslation();
+export default function CopyButton({ meals, date }: CopyButtonProps) {
+  const { t, locale } = useTranslation();
   const { colors } = useTheme();
+  const { showToast } = useToast();
 
   const handleCopy = async () => {
-    const totals = sumMeals(meals);
-
-    const summary = `${t('appName')} ${t('dailySummary')}\n\n${t('calories')}: ${totals.calories}\n${t('protein')}: ${totals.protein}g\n${t('carbs')}: ${totals.carbs}g\n${t('fat')}: ${totals.fat}g\n\n${t('mealsLabel')}: ${meals.length} ${t('loggedToday')}`;
-
-    await Clipboard.setStringAsync(summary);
+    await Clipboard.setStringAsync(buildDaySummary(meals, date, locale));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(t('copied'), t('copiedClipboard'));
+    showToast(t('copiedClipboard'));
   };
 
   return (

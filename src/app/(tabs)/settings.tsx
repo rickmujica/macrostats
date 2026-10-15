@@ -19,8 +19,10 @@ import {
   scheduleMealReminders,
 } from '@/utils/notifications';
 import { parseAmount, roundAmount } from '@/utils/numbers';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -61,44 +63,33 @@ export default function SettingsScreen() {
   const [reminderSchedule, setReminderSchedule] = useState<ReminderScheduleItem[]>([]);
   const [locale, setLocale] = useState<'en' | 'es'>('en');
   const [theme, setTheme] = useState<AppTheme>('system');
-  const [age, setAge] = useState('25');
-  const [height, setHeight] = useState('170');
-  const [weight, setWeight] = useState('70');
-  const [gender, setGender] = useState<UserProfile['gender']>('male');
-  const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>('moderate');
-  const [goal, setGoal] = useState<UserProfile['goal']>('maintain');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      const settings = await getSettings();
-      setCalories(settings.goals.calories.toString());
-      setProtein(settings.goals.protein.toString());
-      setCarbs(settings.goals.carbs.toString());
-      setFat(settings.goals.fat.toString());
-      // If notification permission was revoked, show reminders as off.
-      const remindersOn = settings.remindersEnabled && (await hasReminderPermission());
-      setRemindersEnabled(remindersOn);
-      if (remindersOn !== settings.remindersEnabled) {
-        await updateSettings({ remindersEnabled: remindersOn });
-      }
-      setReminderSchedule(settings.reminderSchedule);
-      setLocale(settings.locale);
-      setAppLocale(settings.locale);
-      setTheme(settings.theme);
-      setAge(settings.profile.age.toString());
-      setHeight(settings.profile.height.toString());
-      setWeight(settings.profile.weight.toString());
-      setGender(settings.profile.gender);
-      setActivityLevel(settings.profile.activityLevel);
-      setGoal(settings.profile.goal);
-    };
+  // Reload on focus so profile edits and recalculated goals show up.
+  useFocusEffect(
+    useCallback(() => {
+      const load = async () => {
+        const settings = await getSettings();
+        setCalories(settings.goals.calories.toString());
+        setProtein(settings.goals.protein.toString());
+        setCarbs(settings.goals.carbs.toString());
+        setFat(settings.goals.fat.toString());
+        // If notification permission was revoked, show reminders as off.
+        const remindersOn = settings.remindersEnabled && (await hasReminderPermission());
+        setRemindersEnabled(remindersOn);
+        if (remindersOn !== settings.remindersEnabled) {
+          await updateSettings({ remindersEnabled: remindersOn });
+        }
+        setReminderSchedule(settings.reminderSchedule);
+        setLocale(settings.locale);
+        setAppLocale(settings.locale);
+        setTheme(settings.theme);
+        setProfile(settings.profile);
+      };
 
-    load();
-  }, []);
-
-  function selectOption<T extends string>(nextValue: T, setter: (value: T) => void) {
-    setter(nextValue);
-  }
+      load();
+    }, []),
+  );
 
   const reminderLabel = (item: ReminderScheduleItem) =>
     item.id === 'lunch'
@@ -184,29 +175,8 @@ export default function SettingsScreen() {
     }
   };
 
-  const readProfile = (): UserProfile | null => {
-    const parsedAge = parseAmount(age);
-    const parsedHeight = parseAmount(height);
-    const parsedWeight = parseAmount(weight);
-
-    if (!parsedAge || !parsedHeight || !parsedWeight) {
-      return null;
-    }
-
-    return {
-      age: parsedAge,
-      height: parsedHeight,
-      weight: parsedWeight,
-      gender,
-      activityLevel,
-      goal,
-    };
-  };
-
   const fillRecommendedGoals = () => {
-    const profile = readProfile();
     if (!profile) {
-      Alert.alert(t('error'), t('invalidProfile'));
       return;
     }
 
@@ -220,12 +190,6 @@ export default function SettingsScreen() {
   };
 
   const saveSettings = async () => {
-    const profile = readProfile();
-    if (!profile) {
-      Alert.alert(t('error'), t('invalidProfile'));
-      return;
-    }
-
     const goals = {
       calories: parseAmount(calories),
       protein: parseAmount(protein),
@@ -245,7 +209,6 @@ export default function SettingsScreen() {
         carbs: roundAmount(goals.carbs),
         fat: roundAmount(goals.fat),
       },
-      profile,
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -274,6 +237,27 @@ export default function SettingsScreen() {
       color: colors.background,
       fontSize: 16,
       fontWeight: 'bold',
+    },
+    profileRow: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    profileText: {
+      flex: 1,
+    },
+    profileTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    profileSummary: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      marginTop: 4,
     },
     secondaryButton: {
       borderWidth: 1,
@@ -350,6 +334,50 @@ export default function SettingsScreen() {
     <ScrollView style={globalStyles.container} contentContainerStyle={styles.content}>
       <Text style={globalStyles.title}>{t('settingsTitle')}</Text>
 
+      <Text style={styles.sectionTitle}>{t('userProfile')}</Text>
+      <TouchableOpacity
+        style={styles.profileRow}
+        onPress={() => router.push('/profile')}
+        accessibilityRole='button'
+        accessibilityHint={t('editProfileHint')}
+      >
+        <View style={styles.profileText}>
+          <Text style={styles.profileTitle}>{t('yourProfile')}</Text>
+          {profile && (
+            <>
+              <Text style={styles.profileSummary}>
+                {[
+                  t('ageYears').replace('{age}', String(profile.age)),
+                  `${profile.height} cm`,
+                  `${profile.weight} kg`,
+                  profile.gender === 'male'
+                    ? t('genderMale')
+                    : profile.gender === 'female'
+                      ? t('genderFemale')
+                      : t('genderOther'),
+                ].join(' · ')}
+              </Text>
+              <Text style={styles.profileSummary}>
+                {`${t('activityLevel')}: ${
+                  profile.activityLevel === 'low'
+                    ? t('activityLow')
+                    : profile.activityLevel === 'moderate'
+                      ? t('activityModerate')
+                      : t('activityHigh')
+                } · ${t('goal')}: ${
+                  profile.goal === 'maintain'
+                    ? t('goalMaintain')
+                    : profile.goal === 'lose'
+                      ? t('goalLose')
+                      : t('goalGain')
+                }`}
+              </Text>
+            </>
+          )}
+        </View>
+        <Ionicons name='chevron-forward' size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>{t('macroGoals')}</Text>
       <View style={styles.row}>
         <LabeledTextInput
@@ -386,78 +414,6 @@ export default function SettingsScreen() {
           onChangeText={setFat}
           containerStyle={styles.rowInput}
         />
-      </View>
-
-      <Text style={styles.sectionTitle}>{t('userProfile')}</Text>
-      <View style={styles.row}>
-        <LabeledTextInput
-          label={t('age')}
-          placeholder={t('age')}
-          keyboardType='decimal-pad'
-          value={age}
-          onChangeText={setAge}
-          containerStyle={styles.rowInput}
-        />
-        <LabeledTextInput
-          label={t('height')}
-          placeholder={t('height')}
-          keyboardType='decimal-pad'
-          value={height}
-          onChangeText={setHeight}
-          containerStyle={styles.rowInput}
-        />
-      </View>
-      <LabeledTextInput
-        label={t('weight')}
-        placeholder={t('weight')}
-        keyboardType='decimal-pad'
-        value={weight}
-        onChangeText={setWeight}
-      />
-
-      <Text style={styles.subTitle}>{t('gender')}</Text>
-      <View style={styles.optionRow}>
-        {(['male', 'female', 'other'] as UserProfile['gender'][]).map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[styles.option, gender === option && styles.optionSelected]}
-            onPress={() => selectOption(option, setGender)}
-          >
-            <Text style={gender === option ? styles.selectedOptionText : styles.optionText}>
-              {option === 'male' ? t('genderMale') : option === 'female' ? t('genderFemale') : t('genderOther')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.subTitle}>{t('activityLevel')}</Text>
-      <View style={styles.optionRow}>
-        {(['low', 'moderate', 'high'] as UserProfile['activityLevel'][]).map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[styles.option, activityLevel === option && styles.optionSelected]}
-            onPress={() => selectOption(option, setActivityLevel)}
-          >
-            <Text style={activityLevel === option ? styles.selectedOptionText : styles.optionText}>
-              {option === 'low' ? t('activityLow') : option === 'moderate' ? t('activityModerate') : t('activityHigh')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.subTitle}>{t('goal')}</Text>
-      <View style={styles.optionRow}>
-        {(['maintain', 'lose', 'gain'] as UserProfile['goal'][]).map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[styles.option, goal === option && styles.optionSelected]}
-            onPress={() => selectOption(option, setGoal)}
-          >
-            <Text style={goal === option ? styles.selectedOptionText : styles.optionText}>
-              {option === 'maintain' ? t('goalMaintain') : option === 'lose' ? t('goalLose') : t('goalGain')}
-            </Text>
-          </TouchableOpacity>
-        ))}
       </View>
 
       <TouchableOpacity style={styles.secondaryButton} onPress={fillRecommendedGoals}>

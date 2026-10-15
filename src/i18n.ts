@@ -128,6 +128,38 @@ type TranslationMap = {
   remindersBlocked: string;
   remindersScheduleError: string;
   openSettings: string;
+  onboardingIntro: string;
+  getStarted: string;
+  recentFoods: string;
+  recentFoodHint: string;
+  caloriesFromMacrosHint: string;
+  mealAddedToast: string;
+  mealUpdatedToast: string;
+  mealDeletedToast: string;
+  undo: string;
+  editMeal: string;
+  editMealHint: string;
+  saveChanges: string;
+  mealNotFound: string;
+  shareSummary: string;
+  previousDay: string;
+  nextDay: string;
+  backToToday: string;
+  todaysMeals: string;
+  mealsThatDay: string;
+  noMealsDay: string;
+  history: string;
+  previousWeek: string;
+  nextWeek: string;
+  weeklyAverage: string;
+  noMealsWeek: string;
+  yourProfile: string;
+  editProfileHint: string;
+  ageYears: string;
+  profileSaved: string;
+  profileAndGoalsSaved: string;
+  recalculateGoalsLabel: string;
+  recalculateGoalsHint: string;
 };
 
 type TranslationKey = keyof TranslationMap;
@@ -154,7 +186,7 @@ const translations: Record<Locale, TranslationMap> = {
     enterProtein: "Enter protein",
     enterCarbs: "Enter carbs",
     enterFat: "Enter fat",
-    enterMealError: "Please enter a meal name and calories.",
+    enterMealError: "Please enter a meal name and its calories or macros.",
     mealAddedSuccess: "Meal added successfully!",
     deleteMealTitle: "Delete Meal",
     deleteMealMessage: "Are you sure you want to delete",
@@ -223,13 +255,50 @@ const translations: Record<Locale, TranslationMap> = {
     pickADate: "Pick a date",
     invalidNumber: "Amounts must be positive numbers, like 12 or 12.5.",
     clearAllTitle: "Delete all meals?",
-    clearAllMessage: "This permanently deletes every meal you've logged, on every day.",
+    clearAllMessage:
+      "This permanently deletes every meal you've logged, on every day.",
     recommendedGoals: "Calculate goals from profile",
-    goalsCalculated: "Your macro goals were filled in from your profile. Tap Save Settings to keep them.",
-    remindersBlocked: "Notifications are turned off for this app. Turn them on in Settings to get meal reminders.",
-    remindersScheduleError: "Reminders couldn't be scheduled, so they were turned off. Check that notifications are allowed for this app.",
+    goalsCalculated:
+      "Your macro goals were filled in from your profile. Tap Save Settings to keep them.",
+    remindersBlocked:
+      "Notifications are turned off for this app. Turn them on in Settings to get meal reminders.",
+    remindersScheduleError:
+      "Reminders couldn't be scheduled, so they were turned off. Check that notifications are allowed for this app.",
     openSettings: "Open Settings",
-    remindersUnsupported: "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
+    onboardingIntro: "We'll use this to suggest daily calorie and macro goals. You can change them anytime in Settings.",
+    getStarted: "Get started",
+    recentFoods: "Recent foods",
+    recentFoodHint: "Fills the form with this food",
+    caloriesFromMacrosHint: "Leave calories blank to use {calories} kcal, calculated from the macros.",
+    mealAddedToast: "Added {name}",
+    mealUpdatedToast: "Meal updated",
+    mealDeletedToast: "Deleted {name}",
+    undo: "Undo",
+    editMeal: "Edit Meal",
+    editMealHint: "Opens the meal to edit it",
+    saveChanges: "Save Changes",
+    mealNotFound: "This meal no longer exists.",
+    shareSummary: "Share summary",
+    previousDay: "Previous day",
+    nextDay: "Next day",
+    backToToday: "Back to today",
+    todaysMeals: "Today's Meals",
+    mealsThatDay: "Meals",
+    noMealsDay: "No meals logged on this day.",
+    history: "History",
+    previousWeek: "Previous week",
+    nextWeek: "Next week",
+    weeklyAverage: "Average on logged days: {calories} kcal",
+    noMealsWeek: "No meals logged this week.",
+    yourProfile: "Your profile",
+    editProfileHint: "Opens your profile to edit it",
+    ageYears: "{age} years",
+    profileSaved: "Profile saved",
+    profileAndGoalsSaved: "Profile saved and goals updated",
+    recalculateGoalsLabel: "Update my macro goals",
+    recalculateGoalsHint: "Recalculates calories, protein, carbs and fat from this profile.",
+    remindersUnsupported:
+      "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
   },
   es: {
     appName: "MacroZone",
@@ -240,7 +309,7 @@ const translations: Record<Locale, TranslationMap> = {
     addMeal: "Agregar comida",
     calories: "Calorías",
     protein: "Proteínas",
-    carbs: "Carbohidratos",
+    carbs: "Carbos",
     fat: "Grasas",
     mealName: "Nombre de la comida",
     caloriesPlaceholder: "Calorías",
@@ -252,7 +321,7 @@ const translations: Record<Locale, TranslationMap> = {
     enterProtein: "Ingresa proteínas",
     enterCarbs: "Ingresa carbohidratos",
     enterFat: "Ingresa grasas",
-    enterMealError: "Por favor ingresa un nombre y calorías.",
+    enterMealError: "Ingresa un nombre y sus calorías o macros.",
     mealAddedSuccess: "¡Comida agregada con éxito!",
     deleteMealTitle: "Eliminar comida",
     deleteMealMessage: "¿Estás seguro de que quieres eliminar",
@@ -320,15 +389,53 @@ const translations: Record<Locale, TranslationMap> = {
     settingsSaved: "¡Configuración guardada con éxito!",
     themeUpdated: "Tema actualizado con éxito.",
     pickADate: "Elige una fecha",
-    invalidNumber: "Las cantidades deben ser números positivos, como 12 o 12,5.",
+    invalidNumber:
+      "Las cantidades deben ser números positivos, como 12 o 12,5.",
     clearAllTitle: "¿Eliminar todas las comidas?",
-    clearAllMessage: "Esto elimina para siempre todas las comidas registradas, de todos los días.",
+    clearAllMessage:
+      "Esto elimina para siempre todas las comidas registradas, de todos los días.",
     recommendedGoals: "Calcular metas desde el perfil",
-    goalsCalculated: "Tus metas de macros se completaron con tu perfil. Toca Guardar configuración para conservarlas.",
-    remindersBlocked: "Las notificaciones están desactivadas para esta app. Actívalas en Ajustes para recibir recordatorios.",
-    remindersScheduleError: "No se pudieron programar los recordatorios, así que se desactivaron. Revisa que las notificaciones estén permitidas para esta app.",
+    goalsCalculated:
+      "Tus metas de macros se completaron con tu perfil. Toca Guardar configuración para conservarlas.",
+    remindersBlocked:
+      "Las notificaciones están desactivadas para esta app. Actívalas en Ajustes para recibir recordatorios.",
+    remindersScheduleError:
+      "No se pudieron programar los recordatorios, así que se desactivaron. Revisa que las notificaciones estén permitidas para esta app.",
     openSettings: "Abrir Ajustes",
-    remindersUnsupported: "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
+    onboardingIntro: "Usaremos esto para sugerir tus metas diarias de calorías y macros. Puedes cambiarlas cuando quieras en Configuración.",
+    getStarted: "Comenzar",
+    recentFoods: "Comidas recientes",
+    recentFoodHint: "Completa el formulario con esta comida",
+    caloriesFromMacrosHint: "Deja las calorías vacías para usar {calories} kcal, calculadas con los macros.",
+    mealAddedToast: "Se agregó {name}",
+    mealUpdatedToast: "Comida actualizada",
+    mealDeletedToast: "Se eliminó {name}",
+    undo: "Deshacer",
+    editMeal: "Editar comida",
+    editMealHint: "Abre la comida para editarla",
+    saveChanges: "Guardar cambios",
+    mealNotFound: "Esta comida ya no existe.",
+    shareSummary: "Compartir resumen",
+    previousDay: "Día anterior",
+    nextDay: "Día siguiente",
+    backToToday: "Volver a hoy",
+    todaysMeals: "Comidas de hoy",
+    mealsThatDay: "Comidas",
+    noMealsDay: "No hay comidas registradas este día.",
+    history: "Historial",
+    previousWeek: "Semana anterior",
+    nextWeek: "Semana siguiente",
+    weeklyAverage: "Promedio en días registrados: {calories} kcal",
+    noMealsWeek: "No hay comidas registradas esta semana.",
+    yourProfile: "Tu perfil",
+    editProfileHint: "Abre tu perfil para editarlo",
+    ageYears: "{age} años",
+    profileSaved: "Perfil guardado",
+    profileAndGoalsSaved: "Perfil guardado y metas actualizadas",
+    recalculateGoalsLabel: "Actualizar mis metas de macros",
+    recalculateGoalsHint: "Recalcula calorías, proteínas, carbohidratos y grasas con este perfil.",
+    remindersUnsupported:
+      "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
   },
 };
 

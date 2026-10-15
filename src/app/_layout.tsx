@@ -1,25 +1,70 @@
-
-import { ThemeProvider } from '@/hooks/useTheme';
-import { setAppLocale } from '@/i18n';
-import { getSettings } from '@/storage/settings';
+import { ToastProvider } from '@/components/Toast';
+import ProfileForm from '@/components/ProfileForm';
+import { ThemeProvider, useTheme } from '@/hooks/useTheme';
+import { setAppLocale, useTranslation } from '@/i18n';
+import { calculateGoals, getSettings, updateSettings, type UserProfile } from '@/storage/settings';
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export default function RootLayout() {
+function AppContent() {
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+
   useEffect(() => {
-    const loadLocale = async () => {
+    const load = async () => {
       const settings = await getSettings();
       setAppLocale(settings.locale);
+      setOnboardingComplete(settings.onboardingComplete);
     };
 
-    loadLocale();
+    load();
   }, []);
 
+  const finishOnboarding = async (profile: UserProfile) => {
+    await updateSettings({
+      profile,
+      goals: calculateGoals(profile),
+      onboardingComplete: true,
+    });
+    setOnboardingComplete(true);
+  };
+
+  if (onboardingComplete === null) {
+    // Settings load almost instantly; avoid flashing the wrong screen meanwhile.
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  }
+
+  if (!onboardingComplete) {
+    return (
+      <ProfileForm
+        title={t('onboardingTitle')}
+        intro={t('onboardingIntro')}
+        submitLabel={t('getStarted')}
+        onSubmit={finishOnboarding}
+      />
+    );
+  }
+
   return (
-    <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name='(tabs)' />
-      </Stack>
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='(tabs)' />
+      <Stack.Screen name='meal/[id]' options={{ presentation: 'modal' }} />
+      <Stack.Screen name='profile' options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

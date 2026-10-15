@@ -1,56 +1,84 @@
-# Welcome to your Expo app 👋
+# MacroZone (macrostats)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native app built with [Expo](https://expo.dev) (SDK 56) for tracking daily calories and macros: protein, carbs and fat. Everything is stored on the device; there is no account or server.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **First-run setup**: a short profile (age, height, weight, gender, activity, goal) that fills in recommended calorie and macro goals.
+- **Daily dashboard**: progress rings for calories, protein, carbs and fat against your goals. Step back through previous days with the arrows; "Back to today" returns to the current day.
+- **Logging meals**: name plus calories and macros. Decimals work with either `12.5` or `12,5`. Leave calories blank and they are calculated from the macros (4 kcal/g protein and carbs, 9 kcal/g fat).
+- **Recent foods**: tap a recently logged food on the Add Meal screen to fill the form and log it again.
+- **Edit and delete**: tap a meal to edit it. Swipe it left or tap the trash icon to delete it, with an **Undo** button in the confirmation.
+- **History**: a weekly bar chart of calories against your goal (bars turn red over goal), the average on logged days, and the meals for any selected day.
+- **Share or copy** a plain-text summary of the selected day.
+- **Profile**: edit age, height, weight, gender, activity and goal any time from Settings → Your profile, and optionally recalculate your macro goals from it.
+- **Settings**: macro goals (or "Calculate goals from profile"), English or Spanish, light, dark or system theme, and daily lunch and dinner reminders.
 
-   ```bash
-   npm install
-   ```
+## Requirements
 
-2. Start the app
+- Node.js 20 or later and npm
+- For iOS: Xcode with an iOS simulator (Xcode 27 works; it needs `@expo/cli` 56.1.26 or later, which the current dependencies include)
+- For Android: Android Studio with an emulator
+- [Expo Go](https://expo.dev/go) installed on the simulator or device (the Expo CLI installs it on simulators for you)
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run the app
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+```bash
+npx expo start
+```
 
-### Other setup steps
+Then press `i` for the iOS simulator or `a` for the Android emulator, or scan the QR code with Expo Go on a phone. `npm run ios` and `npm run android` start the server and open the platform in one step.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+If a launch fails with a port or cache problem, make sure no other `expo start` is running and start with a clean cache:
 
-## Learn more
+```bash
+npx expo start --clear
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### Reminders and Expo Go
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Meal reminders use `expo-notifications`:
 
-## Join the community
+- **iOS (Expo Go or a build)**: reminders work once notifications are allowed. If they were denied, the app offers an **Open Settings** button.
+- **Android in Expo Go**: not supported, because Expo Go on Android can't load `expo-notifications`. The switch explains this instead of crashing. Reminders work in a [development build](https://docs.expo.dev/develop/development-builds/introduction/) or a store build.
 
-Join our community of developers creating universal apps.
+## Project structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/
+  app/                  Screens (Expo Router file-based routing)
+    _layout.tsx         Root: theme, toasts, gestures, onboarding gate
+    (tabs)/index.tsx    Home: daily dashboard with day navigation
+    (tabs)/add-meal.tsx Add Meal (recent foods, calories from macros)
+    (tabs)/meals.tsx    History: weekly chart and meals per day
+    (tabs)/settings.tsx Goals, language, theme, reminders, link to profile
+    meal/[id].tsx       Edit Meal (modal)
+    profile.tsx         Edit profile (modal)
+  components/           UI pieces (MealForm, MealItem, WeekChart, Toast, ...)
+  hooks/useTheme.tsx    Light, dark and system theme
+  i18n.ts               English and Spanish strings
+  storage/              AsyncStorage persistence for meals and settings
+  utils/                Dates, number parsing, notifications, share summary
+```
+
+## Checks
+
+```bash
+npx tsc --noEmit
+```
+
+```bash
+npm run lint
+```
+
+## Roadmap
+
+- **Scan a meal from a photo**: take or pick a photo on Add Meal and get an estimated name, calories and macros to review before saving. The likely approach is a vision AI model behind a small server (so no API key ships in the app), with the estimate filling the existing form. Alternatives considered: the Passio Nutrition-AI SDK (needs a development build, paid per scan) and the LogMeal REST API. iOS 27's camera reads packaged nutrition labels into Apple Health but doesn't expose meal-photo estimates to other apps.
+
+## Branches
+
+New work happens on `dev`. `master` holds the released state and is updated by merging pull requests from `dev`.

@@ -34,6 +34,7 @@ export type AppSettings = {
   locale: "en" | "es";
   theme: AppTheme;
   profile: UserProfile;
+  onboardingComplete: boolean;
 };
 
 const APP_SETTINGS_KEY = "appSettings";
@@ -90,6 +91,7 @@ export const getDefaultSettings = (): AppSettings => {
     locale: defaultLocale,
     theme: "system",
     profile: getDefaultProfile(),
+    onboardingComplete: false,
   };
 };
 
@@ -114,6 +116,8 @@ export const getSettings = async (): Promise<AppSettings> => {
       theme: parsed.theme ?? defaults.theme,
       remindersEnabled: parsed.remindersEnabled ?? false,
       profile: parsed.profile ?? getDefaultProfile(),
+      // People who saved settings before onboarding existed have already set up the app.
+      onboardingComplete: parsed.onboardingComplete ?? true,
     };
   } catch {
     return getDefaultSettings();
@@ -140,6 +144,7 @@ export const updateSettings = async (
     theme: next.theme ?? current.theme,
     remindersEnabled: next.remindersEnabled ?? current.remindersEnabled,
     profile: next.profile ?? current.profile,
+    onboardingComplete: next.onboardingComplete ?? current.onboardingComplete,
   };
   await saveSettings(merged);
   return merged;

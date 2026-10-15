@@ -6,36 +6,23 @@ import { Text, View } from 'react-native';
 import MealItem from './MealItem';
 
 type RecentMealsProps = {
+  title: string;
   meals: Meal[];
-  onDelete: () => void;
+  onChange: () => void;
 };
 
-export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
+export default function RecentMeals({ title, meals, onChange }: RecentMealsProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const themeStyles = useGlobalStyles();
 
   return (
     <View>
-      <Text style={[themeStyles.sectionTitle, { color: colors.text }]}>{t('recentMeals')}</Text>
+      <Text style={[themeStyles.sectionTitle, { color: colors.text }]}>{title}</Text>
       {meals.length === 0 ? (
-        <Text style={themeStyles.empty}>{t('noMeals')}</Text>
+        <Text style={themeStyles.empty}>{t('noMealsDay')}</Text>
       ) : (
-        meals
-          .slice(0, 5)
-          .map((meal) => (
-            <MealItem
-              key={meal.id}
-              id={meal.id}
-              name={meal.name}
-              calories={meal.calories}
-              protein={meal.protein}
-              carbs={meal.carbs}
-              fat={meal.fat}
-              createdAt={meal.createdAt}
-              onDelete={onDelete}
-            />
-          ))
+        meals.map((meal) => <MealItem key={meal.id} meal={meal} onChange={onChange} />)
       )}
     </View>
   );
