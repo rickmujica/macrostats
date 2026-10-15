@@ -5,8 +5,9 @@ import ProgressCircle from './ProgressCircle';
 
 type MacroCardProps = {
   label: string;
-  value: string;
-  goal: string;
+  value: number;
+  goal: number;
+  unit?: string;
   color: string;
 };
 
@@ -14,6 +15,7 @@ export default function MacroCard({
   label,
   value,
   goal,
+  unit = '',
   color,
 }: MacroCardProps) {
   const { colors } = useTheme();
@@ -58,17 +60,15 @@ export default function MacroCard({
     [colors],
   );
 
-  const numericGoal = Number(goal.replace(/[^\d]/g, '')) || 0;
-  const numericValue = Number(value.replace(/[^\d]/g, '')) || 0;
-  const progress = numericGoal > 0 ? Math.min(1, numericValue / numericGoal) : 0;
+  const progress = goal > 0 ? Math.min(1, value / goal) : 0;
 
   return (
     <View style={[styles.card, { borderLeftColor: color }]}> 
       <View style={styles.row}>
         <View style={styles.details}>
           <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value}>{value}</Text>
-          <Text style={styles.goal}>/ {goal}</Text>
+          <Text style={styles.value}>{value}{unit}</Text>
+          <Text style={styles.goal}>/ {goal}{unit}</Text>
         </View>
         <ProgressCircle progress={progress} color={color} />
       </View>

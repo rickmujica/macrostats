@@ -3,6 +3,7 @@ import TimePicker from '@/components/TimePicker';
 import { useTheme } from '@/hooks/useTheme';
 import { setAppLocale, useTranslation } from '@/i18n';
 import {
+  calculateGoals,
   getSettings,
   updateSettings,
   type AppTheme,
@@ -10,11 +11,13 @@ import {
   type UserProfile,
 } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
-// import {
-//   cancelMealReminders,
-//   requestPermissions,
-//   scheduleMealReminders,
-// } from '@/utils/notifications';
+import {
+  cancelMealReminders,
+  remindersSupported,
+  requestPermissions,
+  scheduleMealReminders,
+} from '@/utils/notifications';
+import { parseAmount, roundAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -90,68 +93,131 @@ export default function SettingsScreen() {
     setter(nextValue);
   }
 
-  const toggleReminders = async (value: boolean) => {
-    setRemindersEnabled(value);
-    if (!value) {
-      // await cancelMealReminders();
-      await updateSettings({ remindersEnabled: false });
+  const reminderLabel = (item: ReminderScheduleItem) =>
+    item.id === 'lunch'
+      ? t('lunchReminderLabel')
+      : item.id === 'dinner'
+        ? t('dinnerReminderLabel')
+        : item.label;
+
+  // Tap-to-choose options (language, theme, reminders) apply right away.
+  // Typed values (goals and profile) are kept when you tap Save Settings.
+  const selectLanguage = async (nextLocale: 'en' | 'es') => {
+    setLocale(nextLocale);
+    setAppLocale(nextLocale);
+    await updateSettings({ locale: nextLocale });
+    if (remindersEnabled) {
+      // Reschedule so reminder text matches the new language.
+      await scheduleMealReminders(reminderSchedule);
     }
   };
 
-  const saveSettings = async () => {
-    const profile: UserProfile = {
-      age: Number(age),
-      height: Number(height),
-      weight: Number(weight),
+  const selectTheme = async (nextTheme: AppTheme) => {
+    setTheme(nextTheme);
+    await setAppTheme(nextTheme);
+  };
+
+  const toggleReminders = async (value: boolean) => {
+    if (value && !remindersSupported) {
+      Alert.alert(t('remindersLabel'), t('remindersUnsupported'));
+      return;
+    }
+
+    if (value) {
+      const granted = await requestPermissions();
+      if (!granted) {
+        Alert.alert(t('error'), t('reminderEnabledError'));
+        return;
+      }
+      await scheduleMealReminders(reminderSchedule);
+    } else {
+      await cancelMealReminders();
+    }
+
+    setRemindersEnabled(value);
+    await updateSettings({ remindersEnabled: value });
+  };
+
+  const changeReminderTime = async (id: string, nextDate: Date) => {
+    const nextSchedule = reminderSchedule.map((item) =>
+      item.id === id
+        ? { ...item, hour: nextDate.getHours(), minute: nextDate.getMinutes() }
+        : item,
+    );
+
+    setReminderSchedule(nextSchedule);
+    await updateSettings({ reminderSchedule: nextSchedule });
+    if (remindersEnabled) {
+      await scheduleMealReminders(nextSchedule);
+    }
+  };
+
+  const readProfile = (): UserProfile | null => {
+    const parsedAge = parseAmount(age);
+    const parsedHeight = parseAmount(height);
+    const parsedWeight = parseAmount(weight);
+
+    if (!parsedAge || !parsedHeight || !parsedWeight) {
+      return null;
+    }
+
+    return {
+      age: parsedAge,
+      height: parsedHeight,
+      weight: parsedWeight,
       gender,
       activityLevel,
       goal,
     };
+  };
 
-    if (!profile.age || !profile.height || !profile.weight) {
+  const fillRecommendedGoals = () => {
+    const profile = readProfile();
+    if (!profile) {
       Alert.alert(t('error'), t('invalidProfile'));
       return;
     }
 
-    const oldSettings = await getSettings();
-    const previousTheme = oldSettings.theme;
+    const recommended = calculateGoals(profile);
+    setCalories(recommended.calories.toString());
+    setProtein(recommended.protein.toString());
+    setCarbs(recommended.carbs.toString());
+    setFat(recommended.fat.toString());
+    Haptics.selectionAsync();
+    Alert.alert(t('macroGoals'), t('goalsCalculated'));
+  };
 
-    const settings = await updateSettings({
+  const saveSettings = async () => {
+    const profile = readProfile();
+    if (!profile) {
+      Alert.alert(t('error'), t('invalidProfile'));
+      return;
+    }
+
+    const goals = {
+      calories: parseAmount(calories),
+      protein: parseAmount(protein),
+      carbs: parseAmount(carbs),
+      fat: parseAmount(fat),
+    };
+
+    if (goals.calories === null || goals.protein === null || goals.carbs === null || goals.fat === null) {
+      Alert.alert(t('error'), t('invalidNumber'));
+      return;
+    }
+
+    await updateSettings({
       goals: {
-        calories: Number(calories) || 0,
-        protein: Number(protein) || 0,
-        carbs: Number(carbs) || 0,
-        fat: Number(fat) || 0,
+        calories: roundAmount(goals.calories),
+        protein: roundAmount(goals.protein),
+        carbs: roundAmount(goals.carbs),
+        fat: roundAmount(goals.fat),
       },
-      remindersEnabled,
-      reminderSchedule,
-      locale,
-      theme,
       profile,
     });
 
-    if (previousTheme !== theme) {
-      await setAppTheme(theme);
-    }
-
-    // if (remindersEnabled) {
-    //   const granted = await requestPermissions();
-    //   if (!granted) {
-    //     Alert.alert(t('error'), t('reminderEnabledError'));
-    //     return;
-    //   }
-    //   await scheduleMealReminders(settings.reminderSchedule);
-    // } else {
-    //   await cancelMealReminders();
-    // }
-
-    setAppLocale(locale);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert(t('success'), t('settingsSaved'));
-
-    if (previousTheme !== theme) {
-      Alert.alert(t('success'), t('themeUpdated'));
-    }
   };
 
   const styles = useMemo(() => StyleSheet.create({
@@ -176,6 +242,19 @@ export default function SettingsScreen() {
       color: colors.background,
       fontSize: 16,
       fontWeight: 'bold',
+    },
+    secondaryButton: {
+      borderWidth: 1,
+      borderColor: colors.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    secondaryButtonText: {
+      color: colors.primary,
+      fontSize: 15,
+      fontWeight: '600',
     },
     sectionTitle: {
       fontSize: 18,
@@ -244,7 +323,7 @@ export default function SettingsScreen() {
         <LabeledTextInput
           label={t('calories')}
           placeholder={t('enterCalories')}
-          keyboardType='numeric'
+          keyboardType='decimal-pad'
           value={calories}
           onChangeText={setCalories}
           containerStyle={styles.rowInput}
@@ -252,7 +331,7 @@ export default function SettingsScreen() {
         <LabeledTextInput
           label={t('proteinPlaceholder')}
           placeholder={t('enterProtein')}
-          keyboardType='numeric'
+          keyboardType='decimal-pad'
           value={protein}
           onChangeText={setProtein}
           containerStyle={styles.rowInput}
@@ -260,9 +339,9 @@ export default function SettingsScreen() {
       </View>
       <View style={styles.row}>
         <LabeledTextInput
-          label='Carbs (g)'
-          placeholder='Enter carbs'
-          keyboardType='numeric'
+          label={t('carbsPlaceholder')}
+          placeholder={t('enterCarbs')}
+          keyboardType='decimal-pad'
           value={carbs}
           onChangeText={setCarbs}
           containerStyle={styles.rowInput}
@@ -270,7 +349,7 @@ export default function SettingsScreen() {
         <LabeledTextInput
           label={t('fatPlaceholder')}
           placeholder={t('enterFat')}
-          keyboardType='numeric'
+          keyboardType='decimal-pad'
           value={fat}
           onChangeText={setFat}
           containerStyle={styles.rowInput}
@@ -282,7 +361,7 @@ export default function SettingsScreen() {
         <LabeledTextInput
           label={t('age')}
           placeholder={t('age')}
-          keyboardType='numeric'
+          keyboardType='decimal-pad'
           value={age}
           onChangeText={setAge}
           containerStyle={styles.rowInput}
@@ -290,7 +369,7 @@ export default function SettingsScreen() {
         <LabeledTextInput
           label={t('height')}
           placeholder={t('height')}
-          keyboardType='numeric'
+          keyboardType='decimal-pad'
           value={height}
           onChangeText={setHeight}
           containerStyle={styles.rowInput}
@@ -299,7 +378,7 @@ export default function SettingsScreen() {
       <LabeledTextInput
         label={t('weight')}
         placeholder={t('weight')}
-        keyboardType='numeric'
+        keyboardType='decimal-pad'
         value={weight}
         onChangeText={setWeight}
       />
@@ -349,18 +428,17 @@ export default function SettingsScreen() {
         ))}
       </View>
 
+      <TouchableOpacity style={styles.secondaryButton} onPress={fillRecommendedGoals}>
+        <Text style={styles.secondaryButtonText}>{t('recommendedGoals')}</Text>
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>{t('language')}</Text>
       <View style={styles.optionRow}>
         {languageOptions.map((option) => (
           <TouchableOpacity
             key={option.key}
             style={[styles.option, locale === option.key && styles.optionSelected]}
-            onPress={async () => {
-              const nextLocale = option.key;
-              setLocale(nextLocale);
-              setAppLocale(nextLocale);
-              await updateSettings({ locale: nextLocale });
-            }}
+            onPress={() => selectLanguage(option.key)}
           >
             <Text style={locale === option.key ? styles.selectedOptionText : styles.optionText}>
               {option.label}
@@ -375,7 +453,7 @@ export default function SettingsScreen() {
           <TouchableOpacity
             key={option.key}
             style={[styles.option, theme === option.key && styles.optionSelected]}
-            onPress={() => setTheme(option.key)}
+            onPress={() => selectTheme(option.key)}
           >
             <Text style={theme === option.key ? styles.selectedOptionText : styles.optionText}>
               {option.label}
@@ -407,21 +485,9 @@ export default function SettingsScreen() {
                 <TimePicker
                   labelStyle={styles.reminderLabel}
                   valueStyle={styles.noteText}
-                  label={item.label}
+                  label={reminderLabel(item)}
                   value={value}
-                  onChange={(nextDate) => {
-                    setReminderSchedule((prev) =>
-                      prev.map((scheduleItem) =>
-                        scheduleItem.id === item.id
-                          ? {
-                              ...scheduleItem,
-                              hour: nextDate.getHours(),
-                              minute: nextDate.getMinutes(),
-                            }
-                          : scheduleItem,
-                      ),
-                    );
-                  }}
+                  onChange={(nextDate) => changeReminderTime(item.id, nextDate)}
                 />
               </View>
             );

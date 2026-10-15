@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
-import { Meal } from '@/storage/meals';
+import { Meal, sumMeals } from '@/storage/meals';
 import { Ionicons } from '@expo/vector-icons';
 import { Share, TouchableOpacity } from 'react-native';
 
@@ -13,15 +13,7 @@ export default function ShareButton({ meals }: ShareButtonProps) {
   const { colors } = useTheme();
 
   const handleShare = async () => {
-    const totals = meals.reduce(
-      (acc, meal) => ({
-        calories: acc.calories + meal.calories,
-        protein: acc.protein + meal.protein,
-        carbs: acc.carbs + meal.carbs,
-        fat: acc.fat + meal.fat,
-      }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 },
-    );
+    const totals = sumMeals(meals);
 
     await Share.share({
       message: `${t('appName')} ${t('dailySummary')}\n\n${t('calories')}: ${totals.calories}\n${t('protein')}: ${totals.protein}g\n${t('carbs')}: ${totals.carbs}g\n${t('fat')}: ${totals.fat}g\n\n${t('mealsLabel')}: ${meals.length} ${t('loggedToday')}`,

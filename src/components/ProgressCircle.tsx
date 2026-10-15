@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/useTheme';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -7,6 +8,7 @@ type ProgressCircleProps = {
 };
 
 export default function ProgressCircle({ progress, color }: ProgressCircleProps) {
+  const { colors } = useTheme();
   const clampedProgress = Math.max(0, Math.min(1, progress));
   const percent = Math.round(clampedProgress * 100);
   const radius = 20;
@@ -21,7 +23,8 @@ export default function ProgressCircle({ progress, color }: ProgressCircleProps)
           cx='22'
           cy='22'
           r={radius}
-          stroke='rgba(255,255,255,0.08)'
+          stroke={colors.textSecondary}
+          strokeOpacity={0.2}
           strokeWidth={strokeWidth}
           fill='none'
         />

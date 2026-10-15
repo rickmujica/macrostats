@@ -1,4 +1,4 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
+import { DateTimePicker } from '@expo/ui/community/datetime-picker';
 
 type DatePickerProps = {
   date: Date;
