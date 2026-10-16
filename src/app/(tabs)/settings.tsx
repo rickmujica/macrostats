@@ -254,7 +254,7 @@ export default function SettingsScreen() {
     try {
       const backup = await createBackup();
       const shared = await shareTextFile(
-        `macrozone-backup-${dateKey(new Date())}.json`,
+        `macrostats-backup-${dateKey(new Date())}.json`,
         JSON.stringify(backup),
         { mimeType: 'application/json', uti: 'public.json', dialogTitle: t('exportBackup') },
       );
@@ -319,7 +319,7 @@ export default function SettingsScreen() {
     }
     try {
       const meals = await getMeals();
-      const shared = await shareTextFile(`macrozone-${dateKey(new Date())}.csv`, buildMealsCsv(meals), {
+      const shared = await shareTextFile(`macrostats-${dateKey(new Date())}.csv`, buildMealsCsv(meals), {
         mimeType: 'text/csv',
         uti: 'public.comma-separated-values-text',
         dialogTitle: t('exportCsv'),

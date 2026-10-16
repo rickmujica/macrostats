@@ -1,8 +1,8 @@
 ---
-title: MacroZone
+title: MacroStats
 ---
 
-# MacroZone
+# MacroStats
 
 Registra tus calorías y macros (proteínas, carbohidratos y grasas) de forma simple.
 Track your calories and macros (protein, carbs and fat), simply.

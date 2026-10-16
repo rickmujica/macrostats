@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /** Everything a backup carries. Keys are AsyncStorage keys. */
 const BACKUP_KEYS = [MEALS_KEY, APP_SETTINGS_KEY, FAVORITES_KEY, WEIGHTS_KEY, WATER_KEY];
 
-const BACKUP_APP = 'MacroZone';
+const BACKUP_APP = 'MacroStats';
 const BACKUP_FORMAT = 1;
 
 export type Backup = {
@@ -48,7 +48,7 @@ export const parseBackup = (text: string): Backup => {
     typeof backup.data !== 'object' ||
     backup.data === null
   ) {
-    throw new InvalidBackupError('not a MacroZone backup');
+    throw new InvalidBackupError('not a MacroStats backup');
   }
   if (backup.data[MEALS_KEY] !== undefined && !Array.isArray(backup.data[MEALS_KEY])) {
     throw new InvalidBackupError('meals is not a list');

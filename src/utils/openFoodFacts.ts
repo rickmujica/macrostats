@@ -90,7 +90,7 @@ export const lookupBarcode = async (barcode: string, locale: string): Promise<Sc
     response = await fetch(
       `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`,
       // Open Food Facts asks every app to identify itself.
-      { headers: { 'User-Agent': `MacroZone/${version} (https://github.com/rickmujica/macrostats)` } },
+      { headers: { 'User-Agent': `MacroStats/${version} (https://github.com/rickmujica/macrostats)` } },
     );
   } catch {
     throw new FoodLookupError('network');

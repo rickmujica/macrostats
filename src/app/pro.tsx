@@ -135,7 +135,7 @@ export default function ProScreen() {
 
       <View style={styles.hero}>
         <Ionicons name='star' size={44} color='#ffd93d' />
-        <Text style={styles.heroTitle}>MacroZone Pro</Text>
+        <Text style={styles.heroTitle}>MacroStats Pro</Text>
         <Text style={styles.heroText}>{t('proSubtitle')}</Text>
       </View>
 

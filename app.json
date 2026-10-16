@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "MacroZone",
+    "name": "MacroStats",
     "slug": "macrostats",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,7 @@
     "scheme": "macrostats",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.rickmujica.macrozone",
+      "bundleIdentifier": "com.rickmujica.macrostats",
       "icon": "./assets/images/icon.png",
       "supportsTablet": false,
       "config": {
@@ -16,7 +16,7 @@
       }
     },
     "android": {
-      "package": "com.rickmujica.macrozone",
+      "package": "com.rickmujica.macrostats",
       "adaptiveIcon": {
         "backgroundColor": "#1a1a2e",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -56,7 +56,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "MacroZone uses the camera to scan food barcodes.",
+          "cameraPermission": "MacroStats uses the camera to scan food barcodes.",
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true,
           "microphonePermission": false
@@ -73,7 +73,7 @@
       [
         "expo-tracking-transparency",
         {
-          "userTrackingPermission": "MacroZone uses this to show ads that are more relevant to you. The app works the same if you don't allow it."
+          "userTrackingPermission": "MacroStats uses this to show ads that are more relevant to you. The app works the same if you don't allow it."
         }
       ],
       [

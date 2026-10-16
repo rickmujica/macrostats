@@ -1,4 +1,4 @@
-# MacroZone (macrostats)
+# MacroStats
 
 A React Native app built with [Expo](https://expo.dev) (SDK 56) for tracking daily calories and macros: protein, carbs and fat. Everything is stored on the device; there is no account or server.
 
@@ -15,7 +15,7 @@ A React Native app built with [Expo](https://expo.dev) (SDK 56) for tracking dai
 - **Share or copy** a plain-text summary of the selected day.
 - **Settings**: macro and water goals, profile, English or Spanish, light, dark or system theme, lunch and dinner reminders, ad privacy choices and an opt-out for anonymous usage stats.
 
-### MacroZone Pro
+### MacroStats Pro
 
 A one-time purchase or a subscription (RevenueCat entitlement `pro`) that:
 
@@ -107,7 +107,7 @@ src/
     (tabs)/settings.tsx Pro, goals, language, theme, reminders, data, about
     meal/[id].tsx       Edit Meal (modal)
     profile.tsx         Edit profile (modal)
-    pro.tsx             MacroZone Pro paywall (modal)
+    pro.tsx             MacroStats Pro paywall (modal)
     scan.tsx            Barcode scanner (Pro)
     weight.tsx          Log weight (modal)
   ads/                  AdMob consent, initialization and banner
@@ -120,6 +120,7 @@ src/
   utils/                Dates, portions, streak, backup, CSV, Open Food Facts, ...
   __tests__/            Jest unit tests
 plugins/                Local Expo config plugins
+scripts/                make-demo-backup.mjs: sample data to import for store screenshots
 docs/                   Privacy policy (GitHub Pages)
 store/                  Play Store icon, feature graphic and screenshots
 ```

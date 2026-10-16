@@ -27,10 +27,10 @@ describe('backups', () => {
     expect(await getMeals()).toEqual([]);
   });
 
-  it('rejects files that are not MacroZone backups', () => {
+  it('rejects files that are not MacroStats backups', () => {
     expect(() => parseBackup('not json')).toThrow(InvalidBackupError);
     expect(() => parseBackup('{"app":"Other","format":1,"data":{}}')).toThrow(InvalidBackupError);
-    expect(() => parseBackup('{"app":"MacroZone","format":99,"data":{}}')).toThrow(InvalidBackupError);
-    expect(() => parseBackup('{"app":"MacroZone","format":1,"data":{"meals":{}}}')).toThrow(InvalidBackupError);
+    expect(() => parseBackup('{"app":"MacroStats","format":99,"data":{}}')).toThrow(InvalidBackupError);
+    expect(() => parseBackup('{"app":"MacroStats","format":1,"data":{"meals":{}}}')).toThrow(InvalidBackupError);
   });
 });
