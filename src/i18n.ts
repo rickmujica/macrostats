@@ -160,6 +160,10 @@ type TranslationMap = {
   profileAndGoalsSaved: string;
   recalculateGoalsLabel: string;
   recalculateGoalsHint: string;
+  healthDisclaimer: string;
+  about: string;
+  privacyPolicy: string;
+  appVersion: string;
 };
 
 type TranslationKey = keyof TranslationMap;
@@ -297,6 +301,11 @@ const translations: Record<Locale, TranslationMap> = {
     profileAndGoalsSaved: "Profile saved and goals updated",
     recalculateGoalsLabel: "Update my macro goals",
     recalculateGoalsHint: "Recalculates calories, protein, carbs and fat from this profile.",
+    healthDisclaimer:
+      "MacroZone gives general estimates for information only. It is not medical or nutrition advice. Talk to a doctor or dietitian before making big changes to your diet, especially if you are pregnant, have a health condition or are under 18.",
+    about: "About",
+    privacyPolicy: "Privacy policy",
+    appVersion: "Version {version}",
     remindersUnsupported:
       "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
   },
@@ -434,6 +443,11 @@ const translations: Record<Locale, TranslationMap> = {
     profileAndGoalsSaved: "Perfil guardado y metas actualizadas",
     recalculateGoalsLabel: "Actualizar mis metas de macros",
     recalculateGoalsHint: "Recalcula calorías, proteínas, carbohidratos y grasas con este perfil.",
+    healthDisclaimer:
+      "MacroZone ofrece estimaciones generales solo con fines informativos. No es consejo médico ni nutricional. Consulta a un médico o nutricionista antes de hacer cambios importantes en tu alimentación, sobre todo si estás embarazada, tienes alguna condición de salud o eres menor de 18 años.",
+    about: "Acerca de",
+    privacyPolicy: "Política de privacidad",
+    appVersion: "Versión {version}",
     remindersUnsupported:
       "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
   },

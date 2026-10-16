@@ -26,6 +26,8 @@ export type ProfileSubmitOptions = {
 type ProfileFormProps = {
   title: string;
   intro?: string;
+  /** Small print shown above the submit button, such as the health disclaimer. */
+  footnote?: string;
   submitLabel: string;
   initialProfile?: UserProfile;
   headerAction?: ReactNode;
@@ -72,6 +74,7 @@ function OptionRow<T extends string>({ options, selected, onSelect, styles }: Op
 export default function ProfileForm({
   title,
   intro,
+  footnote,
   submitLabel,
   initialProfile,
   headerAction,
@@ -151,6 +154,12 @@ export default function ProfileForm({
           color: colors.textSecondary,
           fontSize: 12,
           marginTop: 4,
+        },
+        footnote: {
+          fontSize: 12,
+          lineHeight: 17,
+          color: colors.textSecondary,
+          marginTop: 28,
         },
         button: {
           backgroundColor: colors.primary,
@@ -287,6 +296,8 @@ export default function ProfileForm({
             />
           </View>
         )}
+
+        {footnote ? <Text style={styles.footnote}>{footnote}</Text> : null}
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>{submitLabel}</Text>

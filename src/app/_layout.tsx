@@ -42,6 +42,7 @@ function AppContent() {
       <ProfileForm
         title={t('onboardingTitle')}
         intro={t('onboardingIntro')}
+        footnote={t('healthDisclaimer')}
         submitLabel={t('getStarted')}
         onSubmit={finishOnboarding}
       />

@@ -1,4 +1,5 @@
 import LabeledTextInput from '@/components/LabeledTextInput';
+import { PRIVACY_POLICY_URL } from '@/constants/links';
 import TimePicker from '@/components/TimePicker';
 import { useTheme } from '@/hooks/useTheme';
 import { setAppLocale, useTranslation } from '@/i18n';
@@ -20,8 +21,10 @@ import {
 } from '@/utils/notifications';
 import { parseAmount, roundAmount } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
@@ -328,6 +331,24 @@ export default function SettingsScreen() {
     timePickerWrapper: {
       marginBottom: 16,
     },
+    linkRow: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    linkText: {
+      color: colors.text,
+      fontSize: 16,
+    },
+    disclaimerText: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 16,
+    },
   }), [colors]);
 
   return (
@@ -486,6 +507,20 @@ export default function SettingsScreen() {
       <TouchableOpacity style={styles.button} onPress={saveSettings}>
         <Text style={styles.buttonText}>{t('saveSettings')}</Text>
       </TouchableOpacity>
+
+      <Text style={styles.sectionTitle}>{t('about')}</Text>
+      <TouchableOpacity
+        style={styles.linkRow}
+        onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
+        accessibilityRole='link'
+      >
+        <Text style={styles.linkText}>{t('privacyPolicy')}</Text>
+        <Ionicons name='open-outline' size={18} color={colors.textSecondary} />
+      </TouchableOpacity>
+      <Text style={styles.disclaimerText}>{t('healthDisclaimer')}</Text>
+      <Text style={styles.disclaimerText}>
+        {t('appVersion').replace('{version}', Constants.expoConfig?.version ?? '')}
+      </Text>
     </ScrollView>
   );
 }
