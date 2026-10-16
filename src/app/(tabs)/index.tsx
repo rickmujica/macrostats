@@ -14,15 +14,16 @@ import { copyMealsToDay, deleteMeals, getMeals, Meal, sameDay } from '@/storage/
 import { getSettings, MacroGoals } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
 import { addDays } from '@/utils/dates';
+import { formatNumber } from '@/utils/numbers';
 import { getStreak } from '@/utils/streak';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { AppState, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const { showToast } = useToast();
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -68,9 +69,31 @@ export default function HomeScreen() {
     }, []),
   );
 
-  useEffect(() => {
-    getWater(selectedDate).then(setWater);
-  }, [selectedDate]);
+  // Water for the selected day, reloaded on focus (a restored backup changes it) and when the
+  // app comes back to the foreground.
+  useFocusEffect(
+    useCallback(() => {
+      // Ignore answers that arrive after the day changed or the screen lost focus.
+      let current = true;
+      const loadWater = () =>
+        getWater(selectedDate).then((ml) => {
+          if (current) {
+            setWater(ml);
+          }
+        });
+
+      loadWater();
+      const subscription = AppState.addEventListener('change', (state) => {
+        if (state === 'active') {
+          loadWater();
+        }
+      });
+      return () => {
+        current = false;
+        subscription.remove();
+      };
+    }, [selectedDate]),
+  );
 
   // Today: copy yesterday's meals. Another day: copy that day's meals to today.
   const copySource = isToday ? (yesterdayHasMeals ? yesterday : null) : dayMeals.length > 0 ? selectedDate : null;
@@ -84,7 +107,9 @@ export default function HomeScreen() {
     track('day_copied', { meals: copies.length });
     setSelectedDate(new Date());
     await loadMeals();
-    showToast(t('mealsCopied').replace('{count}', String(copies.length)), {
+    const copiedMessage =
+      copies.length === 1 ? t('mealsCopiedOne') : t('mealsCopied').replace('{count}', formatNumber(copies.length, locale));
+    showToast(copiedMessage, {
       actionLabel: t('undo'),
       onAction: async () => {
         await deleteMeals(copies.map((meal) => meal.id));
@@ -103,7 +128,7 @@ export default function HomeScreen() {
         {streak > 0 && (
           <View
             style={[styles.streak, { backgroundColor: colors.surface }]}
-            accessibilityLabel={t('streakLabel').replace('{days}', String(streak))}
+            accessibilityLabel={streak === 1 ? t('streakLabelOne') : t('streakLabel').replace('{days}', String(streak))}
           >
             <Ionicons name='flame' size={16} color='#ff8a3d' />
             <Text style={[styles.streakText, { color: colors.text }]}>

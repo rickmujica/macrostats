@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { getWeightChange, type WeightEntry } from '@/storage/body';
 import { dateKey } from '@/utils/dates';
+import { formatNumber } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -20,7 +21,7 @@ type WeightCardProps = {
 
 /** Weight for the week as a line under the calorie chart, with the 30-day trend. */
 export default function WeightCard({ days, entries, selectedDate }: WeightCardProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
 
@@ -53,11 +54,11 @@ export default function WeightCard({ days, entries, selectedDate }: WeightCardPr
         <View style={styles.text}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>{t('bodyWeight')}</Text>
           <Text style={[styles.value, { color: colors.text }]}>
-            {latest ? `${latest.kg} kg` : t('noWeightYet')}
+            {latest ? `${formatNumber(latest.kg, locale)} kg` : t('noWeightYet')}
           </Text>
           {change !== null && (
             <Text style={[styles.change, { color: colors.textSecondary }]}>
-              {t('weightChange30').replace('{change}', `${change > 0 ? '+' : ''}${change}`)}
+              {t('weightChange30').replace('{change}', `${change > 0 ? '+' : ''}${formatNumber(change, locale)}`)}
             </Text>
           )}
         </View>
@@ -92,7 +93,7 @@ export default function WeightCard({ days, entries, selectedDate }: WeightCardPr
           <View style={styles.labels}>
             {weekValues.map((value, index) => (
               <Text key={index} style={[styles.dayValue, { color: colors.textSecondary }]}>
-                {value ?? ''}
+                {value === null ? '' : formatNumber(value, locale)}
               </Text>
             ))}
           </View>

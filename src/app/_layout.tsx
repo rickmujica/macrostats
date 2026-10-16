@@ -8,11 +8,20 @@ import { initAnalytics, trackScreen } from '@/services/analytics';
 import { initMonitoring, wrapRoot } from '@/services/monitoring';
 import { calculateGoals, getSettings, updateSettings, type UserProfile } from '@/storage/settings';
 import { Stack, usePathname } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 initMonitoring();
+
+// Follows the app's theme setting, not the device's ("auto" would follow the device), so the
+// icons stay readable on onboarding and every screen. With edge-to-edge (always on in SDK 56)
+// the bar is transparent over each screen's background, so only the icon style is set.
+function ThemedStatusBar() {
+  const { scheme } = useTheme();
+  return <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />;
+}
 
 function AppContent() {
   const { colors } = useTheme();
@@ -79,6 +88,7 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
+        <ThemedStatusBar />
         <ProProvider>
           <ToastProvider>
             <AppContent />

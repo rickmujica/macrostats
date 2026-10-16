@@ -8,7 +8,7 @@ import { sameDay } from '@/storage/meals';
 import { getSettings, updateSettings } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
 import { dateKey, fromDateKey } from '@/utils/dates';
-import { parseAmount } from '@/utils/numbers';
+import { formatInputNumber, parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -31,11 +31,11 @@ export default function WeightScreen() {
       const existing = entries.find((entry) => entry.date === dateKey(date));
       if (existing) {
         setHasEntry(true);
-        setWeight(String(existing.kg));
+        setWeight(formatInputNumber(existing.kg, locale));
         return;
       }
       const latest = entries[entries.length - 1];
-      setWeight(String(latest?.kg ?? (await getSettings()).profile.weight));
+      setWeight(formatInputNumber(latest?.kg ?? (await getSettings()).profile.weight, locale));
     };
     load();
     // The date only comes from the route, so load once.

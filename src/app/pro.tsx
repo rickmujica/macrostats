@@ -1,3 +1,4 @@
+import ThemedSwitch from '@/components/ThemedSwitch';
 import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
@@ -8,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const KIND_ORDER = { annual: 0, lifetime: 1, monthly: 2, other: 3 };
 
@@ -188,11 +189,7 @@ export default function ProScreen() {
       {__DEV__ && (
         <View style={styles.devRow}>
           <Text style={styles.devText}>{t('devProToggle')}</Text>
-          <Switch
-            value={devPro}
-            onValueChange={setDevPro}
-            trackColor={{ false: colors.surface, true: colors.primary }}
-          />
+          <ThemedSwitch value={devPro} onValueChange={setDevPro} />
         </View>
       )}
     </ScrollView>

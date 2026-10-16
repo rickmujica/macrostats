@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { track } from '@/services/analytics';
 import { addWater, GLASS_ML } from '@/storage/body';
+import { formatNumber } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -20,7 +21,7 @@ export default function WaterCard({ date, ml, goal, onChange }: WaterCardProps) 
   const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const progress = goal > 0 ? Math.min(ml / goal, 1) : 0;
-  const format = (value: number) => value.toLocaleString(locale);
+  const format = (value: number) => formatNumber(value, locale);
 
   const change = async (delta: number) => {
     Haptics.selectionAsync();

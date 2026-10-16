@@ -84,7 +84,8 @@
           }
         }
       ],
-      "./plugins/withSingleTopActivity"
+      "./plugins/withSingleTopActivity",
+      "./plugins/withGoogleMobileAdsKotlinMetadataFix"
     ],
     "experiments": {
       "typedRoutes": true,

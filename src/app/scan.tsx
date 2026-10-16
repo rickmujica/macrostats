@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { router, useIsFocused } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,13 +76,17 @@ export default function ScanScreen() {
     </TouchableOpacity>
   );
 
+  // The scanner is black in both themes, so it overrides the app's status bar style while open.
+  const statusBar = <StatusBar style='light' />;
+
   if (!permission) {
-    return <View style={styles.screen} />;
+    return <View style={styles.screen}>{statusBar}</View>;
   }
 
   if (!permission.granted) {
     return (
       <View style={[styles.screen, styles.center]}>
+        {statusBar}
         {closeButton}
         <Ionicons name='camera-outline' size={48} color='#ffffff' />
         <Text style={styles.message}>{t('cameraPermission')}</Text>
@@ -97,6 +102,7 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.screen}>
+      {statusBar}
       {isFocused && (
         <CameraView
           style={StyleSheet.absoluteFill}

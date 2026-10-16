@@ -29,8 +29,35 @@ const normalizeLocale = (value?: string): Locale => {
   return value?.startsWith("es") ? "es" : "en";
 };
 
-let locale: Locale = normalizeLocale(getDeviceLocale());
+const deviceLocale = getDeviceLocale().replace(/_/g, "-");
+
+let locale: Locale = normalizeLocale(deviceLocale);
 const localeListeners = new Set<() => void>();
+
+const formatLocales = new Map<Locale, string>();
+
+/**
+ * The locale for formatting numbers and dates: the device's region when it uses the
+ * app's language (es-MX keeps "80.6", es-PY shows "80,6"), otherwise the bare language.
+ */
+export const getFormatLocale = (language: Locale = locale): string => {
+  const cached = formatLocales.get(language);
+  if (cached) {
+    return cached;
+  }
+
+  let result: string = language;
+  if (deviceLocale.toLowerCase().startsWith(language)) {
+    try {
+      new Intl.NumberFormat(deviceLocale);
+      result = deviceLocale;
+    } catch {
+      // Not a valid BCP 47 tag; keep the bare language.
+    }
+  }
+  formatLocales.set(language, result);
+  return result;
+};
 
 type TranslationMap = {
   appName: string;
@@ -152,6 +179,7 @@ type TranslationMap = {
   previousWeek: string;
   nextWeek: string;
   weeklyAverage: string;
+  calorieGoalLabel: string;
   noMealsWeek: string;
   yourProfile: string;
   editProfileHint: string;
@@ -218,7 +246,9 @@ type TranslationMap = {
   noWeightYet: string;
   weightChange30: string;
   mealsCopied: string;
+  mealsCopiedOne: string;
   streakLabel: string;
+  streakLabelOne: string;
   streakOneDay: string;
   streakDays: string;
   copyYesterday: string;
@@ -376,6 +406,7 @@ const translations: Record<Locale, TranslationMap> = {
     previousWeek: "Previous week",
     nextWeek: "Next week",
     weeklyAverage: "Average on logged days: {calories} kcal",
+    calorieGoalLabel: "Calorie goal: {calories} kcal",
     noMealsWeek: "No meals logged this week.",
     yourProfile: "Your profile",
     editProfileHint: "Opens your profile to edit it",
@@ -445,7 +476,9 @@ const translations: Record<Locale, TranslationMap> = {
     noWeightYet: "No weight logged yet",
     weightChange30: "{change} kg in the last 30 days",
     mealsCopied: "{count} meals copied to today",
+    mealsCopiedOne: "1 meal copied to today",
     streakLabel: "Logging streak: {days} days in a row",
+    streakLabelOne: "Logging streak: 1 day",
     streakOneDay: "1 day streak",
     streakDays: "{days} day streak",
     copyYesterday: "Copy yesterday",
@@ -488,7 +521,7 @@ const translations: Record<Locale, TranslationMap> = {
     addMeal: "Agregar comida",
     calories: "Calorías",
     protein: "Proteínas",
-    carbs: "Carbos",
+    carbs: "Carbohidratos",
     fat: "Grasas",
     mealName: "Nombre de la comida",
     caloriesPlaceholder: "Calorías",
@@ -605,6 +638,7 @@ const translations: Record<Locale, TranslationMap> = {
     previousWeek: "Semana anterior",
     nextWeek: "Semana siguiente",
     weeklyAverage: "Promedio en días registrados: {calories} kcal",
+    calorieGoalLabel: "Meta de calorías: {calories} kcal",
     noMealsWeek: "No hay comidas registradas esta semana.",
     yourProfile: "Tu perfil",
     editProfileHint: "Abre tu perfil para editarlo",
@@ -677,7 +711,9 @@ const translations: Record<Locale, TranslationMap> = {
     noWeightYet: "Todavía no has registrado tu peso",
     weightChange30: "{change} kg en los últimos 30 días",
     mealsCopied: "{count} comidas copiadas a hoy",
+    mealsCopiedOne: "1 comida copiada a hoy",
     streakLabel: "Racha: {days} días seguidos registrando",
+    streakLabelOne: "Racha: 1 día registrando",
     streakOneDay: "Racha de 1 día",
     streakDays: "Racha de {days} días",
     copyYesterday: "Copiar ayer",
@@ -727,7 +763,8 @@ export const useTranslation = () => {
   return {
     t: (key: TranslationKey) =>
       translations[currentLocale][key] || translations.en[key] || key,
-    locale: currentLocale,
+    /** BCP 47 tag for formatting, e.g. "es-PY". Starts with the app language ("en" or "es"). */
+    locale: getFormatLocale(currentLocale),
   };
 };
 

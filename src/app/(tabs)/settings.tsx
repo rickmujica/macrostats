@@ -1,10 +1,11 @@
 import { useAds } from '@/ads/AdsProvider';
 import LabeledTextInput from '@/components/LabeledTextInput';
 import { PRIVACY_POLICY_URL } from '@/constants/links';
+import ThemedSwitch from '@/components/ThemedSwitch';
 import TimePicker from '@/components/TimePicker';
 import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
-import { setAppLocale, useTranslation } from '@/i18n';
+import { getFormatLocale, setAppLocale, useTranslation } from '@/i18n';
 import { usePro } from '@/pro/ProProvider';
 import { setAnalyticsEnabled, track } from '@/services/analytics';
 import { resetFavoritesCache } from '@/storage/favorites';
@@ -29,7 +30,7 @@ import { createBackup, InvalidBackupError, parseBackup, restoreBackup } from '@/
 import { buildMealsCsv } from '@/utils/csv';
 import { dateKey } from '@/utils/dates';
 import { pickTextFile, shareTextFile } from '@/utils/files';
-import { parseAmount, roundAmount } from '@/utils/numbers';
+import { formatInputNumber, formatNumber, parseAmount, roundAmount } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
@@ -41,7 +42,6 @@ import {
   Linking,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -53,7 +53,8 @@ type OptionItem<T extends string> = {
 };
 
 export default function SettingsScreen() {
-  const { t } = useTranslation();
+  // Renamed because `locale` below is the language picker's state.
+  const { t, locale: appLocale } = useTranslation();
   const { colors, setAppTheme } = useTheme();
   const globalStyles = useGlobalStyles();
   const { isPro } = usePro();
@@ -88,11 +89,12 @@ export default function SettingsScreen() {
     useCallback(() => {
       const load = async () => {
         const settings = await getSettings();
-        setCalories(settings.goals.calories.toString());
-        setProtein(settings.goals.protein.toString());
-        setCarbs(settings.goals.carbs.toString());
-        setFat(settings.goals.fat.toString());
-        setWaterGoal(settings.waterGoal.toString());
+        const formatLocale = getFormatLocale(settings.locale);
+        setCalories(formatInputNumber(settings.goals.calories, formatLocale));
+        setProtein(formatInputNumber(settings.goals.protein, formatLocale));
+        setCarbs(formatInputNumber(settings.goals.carbs, formatLocale));
+        setFat(formatInputNumber(settings.goals.fat, formatLocale));
+        setWaterGoal(formatInputNumber(settings.waterGoal, formatLocale));
         setAnalytics(settings.analyticsEnabled);
         // If notification permission was revoked, show reminders as off.
         const remindersOn = settings.remindersEnabled && (await hasReminderPermission());
@@ -201,10 +203,10 @@ export default function SettingsScreen() {
     }
 
     const recommended = calculateGoals(profile);
-    setCalories(recommended.calories.toString());
-    setProtein(recommended.protein.toString());
-    setCarbs(recommended.carbs.toString());
-    setFat(recommended.fat.toString());
+    setCalories(formatInputNumber(recommended.calories, appLocale));
+    setProtein(formatInputNumber(recommended.protein, appLocale));
+    setCarbs(formatInputNumber(recommended.carbs, appLocale));
+    setFat(formatInputNumber(recommended.fat, appLocale));
     Haptics.selectionAsync();
     Alert.alert(t('macroGoals'), t('goalsCalculated'));
   };
@@ -288,7 +290,11 @@ export default function SettingsScreen() {
       return;
     }
 
-    const exportedOn = new Date(backup.exportedAt).toLocaleDateString();
+    const exportedOn = new Date(backup.exportedAt).toLocaleDateString(appLocale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     Alert.alert(t('importBackup'), t('importConfirm').replace('{date}', exportedOn), [
       { text: t('cancel'), style: 'cancel' },
       {
@@ -531,9 +537,9 @@ export default function SettingsScreen() {
             <>
               <Text style={styles.profileSummary}>
                 {[
-                  t('ageYears').replace('{age}', String(profile.age)),
-                  `${profile.height} cm`,
-                  `${profile.weight} kg`,
+                  t('ageYears').replace('{age}', formatNumber(profile.age, appLocale)),
+                  `${formatNumber(profile.height, appLocale)} cm`,
+                  `${formatNumber(profile.weight, appLocale)} kg`,
                   profile.gender === 'male'
                     ? t('genderMale')
                     : profile.gender === 'female'
@@ -644,12 +650,7 @@ export default function SettingsScreen() {
 
       <View style={styles.reminderContainer}>
         <Text style={styles.reminderLabel}>{t('remindersLabel')}</Text>
-        <Switch
-          value={remindersEnabled}
-          onValueChange={toggleReminders}
-          trackColor={{ false: colors.surface, true: colors.primary }}
-          thumbColor={remindersEnabled ? colors.background : colors.text}
-        />
+        <ThemedSwitch value={remindersEnabled} onValueChange={toggleReminders} />
       </View>
 
       {remindersEnabled && (
@@ -721,11 +722,7 @@ export default function SettingsScreen() {
           <Text style={styles.reminderLabel}>{t('shareUsageStats')}</Text>
           <Text style={styles.profileSummary}>{t('shareUsageStatsHint')}</Text>
         </View>
-        <Switch
-          value={analytics}
-          onValueChange={toggleAnalytics}
-          trackColor={{ false: colors.surface, true: colors.primary }}
-        />
+        <ThemedSwitch value={analytics} onValueChange={toggleAnalytics} />
       </View>
       <Text style={styles.disclaimerText}>{t('healthDisclaimer')}</Text>
       <Text style={styles.disclaimerText}>

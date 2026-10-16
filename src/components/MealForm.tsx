@@ -4,7 +4,7 @@ import { useTranslation } from '@/i18n';
 import { removeFavorite, useFavorites, type FavoriteFood } from '@/storage/favorites';
 import { getRecentFoods, type Meal, type MacroTotals } from '@/storage/meals';
 import { useGlobalStyles } from '@/styles/global';
-import { parseAmount, roundAmount } from '@/utils/numbers';
+import { formatInputNumber, formatNumber, parseAmount, roundAmount } from '@/utils/numbers';
 import { macrosForGrams, type Portion } from '@/utils/portions';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -38,7 +38,8 @@ type MealFormProps = {
 type EntryMode = 'total' | 'per100';
 type AmountUnit = 'g' | 'serving';
 
-const toText = (value?: number) => (value === undefined || value === 0 ? '' : String(value));
+const toText = (value: number | undefined, locale: string) =>
+  value === undefined || value === 0 ? '' : formatInputNumber(value, locale);
 
 /** Calories implied by the macros: 4 kcal per gram of protein or carbs, 9 per gram of fat. */
 export const caloriesFromMacros = (protein: number, carbs: number, fat: number) =>
@@ -53,7 +54,7 @@ export default function MealForm({
   onScanPress,
   onSubmit,
 }: MealFormProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const themeStyles = useGlobalStyles();
   const { colors } = useTheme();
   const { favorites } = useFavorites();
@@ -62,15 +63,17 @@ export default function MealForm({
   const initialMacros = initialPortion ? initialPortion.per100g : initialMeal;
   const [name, setName] = useState(initialMeal?.name ?? '');
   const [mode, setMode] = useState<EntryMode>(initialPortion ? 'per100' : 'total');
-  const [calories, setCalories] = useState(initialMacros ? String(initialMacros.calories) : '');
-  const [protein, setProtein] = useState(toText(initialMacros?.protein));
-  const [carbs, setCarbs] = useState(toText(initialMacros?.carbs));
-  const [fat, setFat] = useState(toText(initialMacros?.fat));
+  const [calories, setCalories] = useState(
+    initialMacros ? formatInputNumber(initialMacros.calories, locale) : '',
+  );
+  const [protein, setProtein] = useState(toText(initialMacros?.protein, locale));
+  const [carbs, setCarbs] = useState(toText(initialMacros?.carbs, locale));
+  const [fat, setFat] = useState(toText(initialMacros?.fat, locale));
   const [unit, setUnit] = useState<AmountUnit>(initialPortion?.servings ? 'serving' : 'g');
   const [amount, setAmount] = useState(
-    initialPortion ? String(initialPortion.servings ?? initialPortion.grams) : '100',
+    initialPortion ? formatInputNumber(initialPortion.servings ?? initialPortion.grams, locale) : '100',
   );
-  const [servingSize, setServingSize] = useState(toText(initialPortion?.servingGrams));
+  const [servingSize, setServingSize] = useState(toText(initialPortion?.servingGrams, locale));
   const [barcode, setBarcode] = useState(initialPortion?.barcode);
   const [recentFoods, setRecentFoods] = useState<Meal[]>([]);
 
@@ -109,20 +112,20 @@ export default function MealForm({
     const macros = portion ? portion.per100g : food;
     setName(food.name);
     setMode(portion ? 'per100' : 'total');
-    setCalories(String(macros.calories));
-    setProtein(toText(macros.protein));
-    setCarbs(toText(macros.carbs));
-    setFat(toText(macros.fat));
-    setServingSize(toText(portion?.servingGrams));
+    setCalories(formatInputNumber(macros.calories, locale));
+    setProtein(toText(macros.protein, locale));
+    setCarbs(toText(macros.carbs, locale));
+    setFat(toText(macros.fat, locale));
+    setServingSize(toText(portion?.servingGrams, locale));
     setBarcode(portion?.barcode);
     if (portion?.servings) {
       setUnit('serving');
-      setAmount(String(portion.servings));
+      setAmount(formatInputNumber(portion.servings, locale));
     } else {
       setUnit('g');
-      setAmount(String(portion?.grams ?? 100));
+      setAmount(formatInputNumber(portion?.grams ?? 100, locale));
     }
-  }, []);
+  }, [locale]);
 
   const confirmRemoveFavorite = (favorite: FavoriteFood) => {
     Alert.alert(t('removeFavoriteTitle'), favorite.name, [
@@ -280,6 +283,9 @@ export default function MealForm({
           marginTop: 38,
         },
         unitOption: {
+          // The row stretches these to the height of the amount field; keep the label centered.
+          justifyContent: 'center',
+          alignItems: 'center',
           paddingVertical: 12,
           paddingHorizontal: 14,
           borderRadius: 10,
@@ -365,7 +371,7 @@ export default function MealForm({
                   accessibilityHint={t('favoriteChipHint')}
                 >
                   <Text style={styles.chipText}>{food.name}</Text>
-                  <Text style={styles.chipMeta}>{food.calories} kcal</Text>
+                  <Text style={styles.chipMeta}>{formatNumber(food.calories, locale)} kcal</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -390,7 +396,7 @@ export default function MealForm({
                   accessibilityHint={t('recentFoodHint')}
                 >
                   <Text style={styles.chipText}>{food.name}</Text>
-                  <Text style={styles.chipMeta}>{food.calories} kcal</Text>
+                  <Text style={styles.chipMeta}>{formatNumber(food.calories, locale)} kcal</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -423,7 +429,7 @@ export default function MealForm({
         <View style={styles.row}>
           <LabeledTextInput
             label={mode === 'per100' ? `${t('calories')} / 100 g` : t('calories')}
-            placeholder={caloriesBlank && estimatedCalories > 0 ? `≈ ${estimatedCalories}` : undefined}
+            placeholder={caloriesBlank && estimatedCalories > 0 ? `≈ ${formatNumber(estimatedCalories, locale)}` : undefined}
             keyboardType='decimal-pad'
             value={calories}
             onChangeText={setCalories}
@@ -455,7 +461,7 @@ export default function MealForm({
         </View>
         {caloriesBlank && estimatedCalories > 0 && (
           <Text style={styles.hint}>
-            {t('caloriesFromMacrosHint').replace('{calories}', String(estimatedCalories))}
+            {t('caloriesFromMacrosHint').replace('{calories}', formatNumber(estimatedCalories, locale))}
           </Text>
         )}
 
@@ -493,14 +499,14 @@ export default function MealForm({
                 onChangeText={setServingSize}
               />
             )}
-            {preview && (
+            {preview && grams !== null && (
               <Text style={styles.preview}>
                 {t('portionTotal')
-                  .replace('{grams}', String(grams))
-                  .replace('{calories}', String(preview.calories))
-                  .replace('{protein}', String(preview.protein))
-                  .replace('{carbs}', String(preview.carbs))
-                  .replace('{fat}', String(preview.fat))}
+                  .replace('{grams}', formatNumber(grams, locale))
+                  .replace('{calories}', formatNumber(preview.calories, locale))
+                  .replace('{protein}', formatNumber(preview.protein, locale))
+                  .replace('{carbs}', formatNumber(preview.carbs, locale))
+                  .replace('{fat}', formatNumber(preview.fat, locale))}
               </Text>
             )}
           </>
