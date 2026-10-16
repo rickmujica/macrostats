@@ -1,4 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/i18n';
+import { localizeTypedNumber } from '@/utils/numbers';
 import { useMemo } from 'react';
 import { StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 
@@ -18,6 +20,13 @@ export default function LabeledTextInput({
   ...props
 }: LabeledTextInputProps) {
   const { colors } = useTheme();
+  const { locale } = useTranslation();
+  const { keyboardType, onChangeText } = props;
+  // Number fields show the app language's decimal separator whichever key the user pressed.
+  const handleChangeText =
+    keyboardType === 'decimal-pad' && onChangeText
+      ? (text: string) => onChangeText(localizeTypedNumber(text, locale))
+      : onChangeText;
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -51,7 +60,12 @@ export default function LabeledTextInput({
     <View style={[styles.container, containerStyle]}>
       <Text style={[styles.label, labelStyle]}>{label}</Text>
       <View style={[styles.inputWrapper, wrapperStyle]}>
-        <TextInput style={[styles.input, style]} placeholderTextColor={colors.textSecondary} {...props} />
+        <TextInput
+          style={[styles.input, style]}
+          placeholderTextColor={colors.textSecondary}
+          {...props}
+          onChangeText={handleChangeText}
+        />
       </View>
     </View>
   );

@@ -1,4 +1,11 @@
-import { formatInputNumber, formatNumber, parseAmount, roundAmount } from '@/utils/numbers';
+import {
+  decimalSeparator,
+  formatInputNumber,
+  formatNumber,
+  localizeTypedNumber,
+  parseAmount,
+  roundAmount,
+} from '@/utils/numbers';
 import { getFormatLocale } from '@/i18n';
 
 describe('parseAmount', () => {
@@ -45,6 +52,36 @@ describe('formatNumber', () => {
   it('keeps the sign of negative numbers', () => {
     expect(formatNumber(-1.2, 'en')).toBe('-1.2');
     expect(formatNumber(-1.2, 'es')).toBe('-1,2');
+  });
+});
+
+describe('decimalSeparator', () => {
+  it('is a comma in Spanish and a dot in English', () => {
+    expect(decimalSeparator('es')).toBe(',');
+    expect(decimalSeparator('es-PY')).toBe(',');
+    expect(decimalSeparator('en')).toBe('.');
+    expect(decimalSeparator('en-US')).toBe('.');
+  });
+});
+
+describe('localizeTypedNumber', () => {
+  it('rewrites the typed separator to the app language one', () => {
+    expect(localizeTypedNumber('10.2', 'es')).toBe('10,2');
+    expect(localizeTypedNumber('10,2', 'es')).toBe('10,2');
+    expect(localizeTypedNumber('10,2', 'en')).toBe('10.2');
+    expect(localizeTypedNumber('10.', 'es')).toBe('10,');
+  });
+
+  it('leaves whole numbers and empty text alone', () => {
+    expect(localizeTypedNumber('2200', 'es')).toBe('2200');
+    expect(localizeTypedNumber('', 'es')).toBe('');
+  });
+
+  it('keeps the value parseAmount reads', () => {
+    for (const text of ['10.2', '0,25', '17.5', '60']) {
+      expect(parseAmount(localizeTypedNumber(text, 'es'))).toBe(parseAmount(text));
+      expect(parseAmount(localizeTypedNumber(text, 'en'))).toBe(parseAmount(text));
+    }
   });
 });
 
