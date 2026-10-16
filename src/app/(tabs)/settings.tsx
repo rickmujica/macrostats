@@ -1,8 +1,14 @@
+import { useAds } from '@/ads/AdsProvider';
 import LabeledTextInput from '@/components/LabeledTextInput';
 import { PRIVACY_POLICY_URL } from '@/constants/links';
 import TimePicker from '@/components/TimePicker';
+import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { setAppLocale, useTranslation } from '@/i18n';
+import { usePro } from '@/pro/ProProvider';
+import { setAnalyticsEnabled, track } from '@/services/analytics';
+import { resetFavoritesCache } from '@/storage/favorites';
+import { getMeals } from '@/storage/meals';
 import {
   calculateGoals,
   getSettings,
@@ -19,6 +25,10 @@ import {
   requestPermissions,
   scheduleMealReminders,
 } from '@/utils/notifications';
+import { createBackup, InvalidBackupError, parseBackup, restoreBackup } from '@/utils/backup';
+import { buildMealsCsv } from '@/utils/csv';
+import { dateKey } from '@/utils/dates';
+import { pickTextFile, shareTextFile } from '@/utils/files';
 import { parseAmount, roundAmount } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -46,6 +56,9 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const { colors, setAppTheme } = useTheme();
   const globalStyles = useGlobalStyles();
+  const { isPro } = usePro();
+  const { privacyOptionsRequired, showPrivacyOptions } = useAds();
+  const { showToast } = useToast();
 
   const languageOptions: OptionItem<'en' | 'es'>[] = [
     { key: 'en', label: t('english') },
@@ -62,6 +75,8 @@ export default function SettingsScreen() {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [waterGoal, setWaterGoal] = useState('');
+  const [analytics, setAnalytics] = useState(true);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
   const [reminderSchedule, setReminderSchedule] = useState<ReminderScheduleItem[]>([]);
   const [locale, setLocale] = useState<'en' | 'es'>('en');
@@ -77,6 +92,8 @@ export default function SettingsScreen() {
         setProtein(settings.goals.protein.toString());
         setCarbs(settings.goals.carbs.toString());
         setFat(settings.goals.fat.toString());
+        setWaterGoal(settings.waterGoal.toString());
+        setAnalytics(settings.analyticsEnabled);
         // If notification permission was revoked, show reminders as off.
         const remindersOn = settings.remindersEnabled && (await hasReminderPermission());
         setRemindersEnabled(remindersOn);
@@ -200,7 +217,15 @@ export default function SettingsScreen() {
       fat: parseAmount(fat),
     };
 
-    if (goals.calories === null || goals.protein === null || goals.carbs === null || goals.fat === null) {
+    const parsedWaterGoal = parseAmount(waterGoal);
+
+    if (
+      goals.calories === null ||
+      goals.protein === null ||
+      goals.carbs === null ||
+      goals.fat === null ||
+      parsedWaterGoal === null
+    ) {
       Alert.alert(t('error'), t('invalidNumber'));
       return;
     }
@@ -212,10 +237,101 @@ export default function SettingsScreen() {
         carbs: roundAmount(goals.carbs),
         fat: roundAmount(goals.fat),
       },
+      waterGoal: Math.round(parsedWaterGoal),
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert(t('success'), t('settingsSaved'));
+  };
+
+  const toggleAnalytics = async (value: boolean) => {
+    setAnalytics(value);
+    await updateSettings({ analyticsEnabled: value });
+    await setAnalyticsEnabled(value);
+  };
+
+  const exportBackup = async () => {
+    try {
+      const backup = await createBackup();
+      const shared = await shareTextFile(
+        `macrozone-backup-${dateKey(new Date())}.json`,
+        JSON.stringify(backup),
+        { mimeType: 'application/json', uti: 'public.json', dialogTitle: t('exportBackup') },
+      );
+      if (!shared) {
+        Alert.alert(t('error'), t('shareUnavailable'));
+        return;
+      }
+      track('backup_exported');
+    } catch {
+      Alert.alert(t('error'), t('exportError'));
+    }
+  };
+
+  const importBackup = async () => {
+    let text: string | null;
+    try {
+      text = await pickTextFile();
+    } catch {
+      Alert.alert(t('error'), t('importError'));
+      return;
+    }
+    if (text === null) {
+      return;
+    }
+
+    let backup: ReturnType<typeof parseBackup>;
+    try {
+      backup = parseBackup(text);
+    } catch (error) {
+      Alert.alert(t('error'), error instanceof InvalidBackupError ? t('invalidBackup') : t('importError'));
+      return;
+    }
+
+    const exportedOn = new Date(backup.exportedAt).toLocaleDateString();
+    Alert.alert(t('importBackup'), t('importConfirm').replace('{date}', exportedOn), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('restore'),
+        style: 'destructive',
+        onPress: async () => {
+          await restoreBackup(backup);
+          resetFavoritesCache();
+          const settings = await getSettings();
+          setAppLocale(settings.locale);
+          await setAppTheme(settings.theme);
+          await cancelMealReminders();
+          if (settings.remindersEnabled) {
+            await scheduleMealReminders(settings.reminderSchedule);
+          }
+          track('backup_imported');
+          showToast(t('backupRestored'));
+          router.navigate('/');
+        },
+      },
+    ]);
+  };
+
+  const exportCsv = async () => {
+    if (!isPro) {
+      router.push('/pro');
+      return;
+    }
+    try {
+      const meals = await getMeals();
+      const shared = await shareTextFile(`macrozone-${dateKey(new Date())}.csv`, buildMealsCsv(meals), {
+        mimeType: 'text/csv',
+        uti: 'public.comma-separated-values-text',
+        dialogTitle: t('exportCsv'),
+      });
+      if (!shared) {
+        Alert.alert(t('error'), t('shareUnavailable'));
+        return;
+      }
+      track('csv_exported', { meals: meals.length });
+    } catch {
+      Alert.alert(t('error'), t('exportError'));
+    }
   };
 
   const styles = useMemo(() => StyleSheet.create({
@@ -343,17 +459,64 @@ export default function SettingsScreen() {
       color: colors.text,
       fontSize: 16,
     },
+    proCard: {
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 20,
+      backgroundColor: isPro ? colors.surface : colors.primary,
+    },
+    proTitle: {
+      color: isPro ? colors.text : colors.background,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    proText: {
+      color: isPro ? colors.textSecondary : colors.background,
+      fontSize: 13,
+      marginTop: 2,
+    },
+    dataButtons: {
+      gap: 10,
+    },
+    proBadge: {
+      color: '#1a1a2e',
+      backgroundColor: '#ffd93d',
+      fontSize: 11,
+      fontWeight: '800',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+      overflow: 'hidden',
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 16,
+    },
     disclaimerText: {
       color: colors.textSecondary,
       fontSize: 12,
       lineHeight: 17,
       marginTop: 16,
     },
-  }), [colors]);
+  }), [colors, isPro]);
 
   return (
     <ScrollView style={globalStyles.container} contentContainerStyle={styles.content}>
       <Text style={globalStyles.title}>{t('settingsTitle')}</Text>
+
+      <TouchableOpacity style={styles.proCard} onPress={() => router.push('/pro')} accessibilityRole='button'>
+        <Ionicons name='star' size={26} color='#ffd93d' />
+        <View style={styles.profileText}>
+          <Text style={styles.proTitle}>{isPro ? t('proActiveShort') : t('getPro')}</Text>
+          <Text style={styles.proText}>{isPro ? t('proThanksShort') : t('getProHint')}</Text>
+        </View>
+        <Ionicons name='chevron-forward' size={20} color={isPro ? colors.textSecondary : colors.background} />
+      </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>{t('userProfile')}</Text>
       <TouchableOpacity
@@ -437,6 +600,13 @@ export default function SettingsScreen() {
         />
       </View>
 
+      <LabeledTextInput
+        label={t('waterGoal')}
+        keyboardType='number-pad'
+        value={waterGoal}
+        onChangeText={setWaterGoal}
+      />
+
       <TouchableOpacity style={styles.secondaryButton} onPress={fillRecommendedGoals}>
         <Text style={styles.secondaryButtonText}>{t('recommendedGoals')}</Text>
       </TouchableOpacity>
@@ -508,15 +678,55 @@ export default function SettingsScreen() {
         <Text style={styles.buttonText}>{t('saveSettings')}</Text>
       </TouchableOpacity>
 
+      <Text style={styles.sectionTitle}>{t('yourData')}</Text>
+      <View style={styles.dataButtons}>
+        <TouchableOpacity style={styles.linkRow} onPress={exportBackup} accessibilityRole='button'>
+          <Text style={styles.linkText}>{t('exportBackup')}</Text>
+          <Ionicons name='share-outline' size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkRow} onPress={importBackup} accessibilityRole='button'>
+          <Text style={styles.linkText}>{t('importBackup')}</Text>
+          <Ionicons name='download-outline' size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkRow} onPress={exportCsv} accessibilityRole='button'>
+          <Text style={styles.linkText}>{t('exportCsv')}</Text>
+          {isPro ? (
+            <Ionicons name='document-text-outline' size={18} color={colors.textSecondary} />
+          ) : (
+            <Text style={styles.proBadge}>PRO</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.disclaimerText}>{t('backupNote')}</Text>
+
       <Text style={styles.sectionTitle}>{t('about')}</Text>
-      <TouchableOpacity
-        style={styles.linkRow}
-        onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
-        accessibilityRole='link'
-      >
-        <Text style={styles.linkText}>{t('privacyPolicy')}</Text>
-        <Ionicons name='open-outline' size={18} color={colors.textSecondary} />
-      </TouchableOpacity>
+      <View style={styles.dataButtons}>
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
+          accessibilityRole='link'
+        >
+          <Text style={styles.linkText}>{t('privacyPolicy')}</Text>
+          <Ionicons name='open-outline' size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        {privacyOptionsRequired && (
+          <TouchableOpacity style={styles.linkRow} onPress={showPrivacyOptions} accessibilityRole='button'>
+            <Text style={styles.linkText}>{t('adPrivacyOptions')}</Text>
+            <Ionicons name='shield-checkmark-outline' size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.switchRow}>
+        <View style={styles.profileText}>
+          <Text style={styles.reminderLabel}>{t('shareUsageStats')}</Text>
+          <Text style={styles.profileSummary}>{t('shareUsageStatsHint')}</Text>
+        </View>
+        <Switch
+          value={analytics}
+          onValueChange={toggleAnalytics}
+          trackColor={{ false: colors.surface, true: colors.primary }}
+        />
+      </View>
       <Text style={styles.disclaimerText}>{t('healthDisclaimer')}</Text>
       <Text style={styles.disclaimerText}>
         {t('appVersion').replace('{version}', Constants.expoConfig?.version ?? '')}

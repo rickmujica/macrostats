@@ -164,6 +164,89 @@ type TranslationMap = {
   about: string;
   privacyPolicy: string;
   appVersion: string;
+  removeFavoriteTitle: string;
+  servingSizeError: string;
+  amountError: string;
+  scanBarcode: string;
+  favorites: string;
+  favoriteChipHint: string;
+  modeTotal: string;
+  modePer100g: string;
+  amountGrams: string;
+  amountServings: string;
+  servingsUnit: string;
+  servingSize: string;
+  portionTotal: string;
+  storeUnavailable: string;
+  proLifetime: string;
+  proAnnual: string;
+  proMonthly: string;
+  proLifetimeNote: string;
+  proSubscriptionNote: string;
+  proThanks: string;
+  purchaseError: string;
+  restorePurchases: string;
+  restoreSuccess: string;
+  restoreNothing: string;
+  close: string;
+  proSubtitle: string;
+  proBenefitNoAds: string;
+  proBenefitScanner: string;
+  proBenefitCsv: string;
+  proActive: string;
+  purchasesUnavailable: string;
+  proLegal: string;
+  devProToggle: string;
+  productNotFoundTitle: string;
+  productNotFound: string;
+  enterManually: string;
+  scanAgain: string;
+  lookupFailed: string;
+  cameraPermission: string;
+  allowCamera: string;
+  scanHint: string;
+  offCredit: string;
+  invalidWeight: string;
+  weightSaved: string;
+  logWeight: string;
+  deleteWeight: string;
+  save: string;
+  water: string;
+  removeGlass: string;
+  addGlass: string;
+  bodyWeight: string;
+  noWeightYet: string;
+  weightChange30: string;
+  mealsCopied: string;
+  streakLabel: string;
+  streakOneDay: string;
+  streakDays: string;
+  copyYesterday: string;
+  copyDayToToday: string;
+  addedToFavorites: string;
+  removedFromFavorites: string;
+  removeFromFavorites: string;
+  addToFavorites: string;
+  exportBackup: string;
+  importBackup: string;
+  exportCsv: string;
+  shareUnavailable: string;
+  exportError: string;
+  importError: string;
+  invalidBackup: string;
+  importConfirm: string;
+  restore: string;
+  backupRestored: string;
+  proActiveShort: string;
+  proThanksShort: string;
+  getPro: string;
+  getProHint: string;
+  waterGoal: string;
+  yourData: string;
+  backupNote: string;
+  adPrivacyOptions: string;
+  shareUsageStats: string;
+  shareUsageStatsHint: string;
 };
 
 type TranslationKey = keyof TranslationMap;
@@ -306,6 +389,93 @@ const translations: Record<Locale, TranslationMap> = {
     about: "About",
     privacyPolicy: "Privacy policy",
     appVersion: "Version {version}",
+    removeFavoriteTitle: "Remove from favorites?",
+    servingSizeError: "Enter the serving size in grams.",
+    amountError: "Enter how much you ate.",
+    scanBarcode: "Scan barcode",
+    favorites: "Favorites",
+    favoriteChipHint: "Fills the form with this food. Long-press to remove it from favorites.",
+    modeTotal: "Total eaten",
+    modePer100g: "Per 100 g",
+    amountGrams: "Amount (g)",
+    amountServings: "Servings",
+    servingsUnit: "servings",
+    servingSize: "Serving size (g)",
+    portionTotal: "{grams} g: {calories} kcal · P {protein} g · C {carbs} g · F {fat} g",
+    storeUnavailable: "The store couldn't be reached. Check your connection and try again.",
+    proLifetime: "One-time purchase",
+    proAnnual: "Yearly",
+    proMonthly: "Monthly",
+    proLifetimeNote: "Pay once, Pro forever",
+    proSubscriptionNote: "Renews automatically. Cancel anytime.",
+    proThanks: "Thanks! MacroZone Pro is on.",
+    purchaseError: "The purchase couldn't be completed. Please try again.",
+    restorePurchases: "Restore purchases",
+    restoreSuccess: "Your Pro purchase was restored.",
+    restoreNothing: "No previous Pro purchase was found for this account.",
+    close: "Close",
+    proSubtitle: "Support MacroZone and unlock everything.",
+    proBenefitNoAds: "No ads",
+    proBenefitScanner: "Barcode scanner with Open Food Facts",
+    proBenefitCsv: "Export your full history to CSV",
+    proActive: "MacroZone Pro is active. Thank you!",
+    purchasesUnavailable:
+      "Purchases aren't available in this version of the app. Install MacroZone from Google Play or the App Store to get Pro.",
+    proLegal:
+      "Subscriptions renew automatically until you cancel them in Google Play or App Store settings. The one-time purchase doesn't renew.",
+    devProToggle: "Simulate Pro (development only)",
+    productNotFoundTitle: "Product not found",
+    productNotFound: "This barcode isn't in Open Food Facts yet. You can enter the nutrition label by hand.",
+    enterManually: "Enter manually",
+    scanAgain: "Scan again",
+    lookupFailed: "Couldn't look up this product. Check your connection and try again.",
+    cameraPermission: "MacroZone needs the camera to read barcodes. Images never leave your phone.",
+    allowCamera: "Allow camera",
+    scanHint: "Point the camera at the product's barcode",
+    offCredit: "Nutrition data from Open Food Facts",
+    invalidWeight: "Enter a weight between 20 and 400 kg.",
+    weightSaved: "Weight saved",
+    logWeight: "Log weight",
+    deleteWeight: "Delete this weight",
+    save: "Save",
+    water: "Water",
+    removeGlass: "Remove a glass of water",
+    addGlass: "Add a glass of water",
+    bodyWeight: "Body weight",
+    noWeightYet: "No weight logged yet",
+    weightChange30: "{change} kg in the last 30 days",
+    mealsCopied: "{count} meals copied to today",
+    streakLabel: "Logging streak: {days} days in a row",
+    streakOneDay: "1 day streak",
+    streakDays: "{days} day streak",
+    copyYesterday: "Copy yesterday",
+    copyDayToToday: "Copy to today",
+    addedToFavorites: "{name} added to favorites",
+    removedFromFavorites: "{name} removed from favorites",
+    removeFromFavorites: "Remove from favorites",
+    addToFavorites: "Add to favorites",
+    exportBackup: "Export backup",
+    importBackup: "Import backup",
+    exportCsv: "Export history to CSV",
+    shareUnavailable: "Sharing files isn't available on this device.",
+    exportError: "The file couldn't be created. Please try again.",
+    importError: "The file couldn't be read. Please try again.",
+    invalidBackup: "This file isn't a MacroZone backup.",
+    importConfirm:
+      "This replaces all your meals, goals and settings with the backup from {date}. This can't be undone.",
+    restore: "Restore",
+    backupRestored: "Backup restored",
+    proActiveShort: "MacroZone Pro",
+    proThanksShort: "Active. Thanks for your support!",
+    getPro: "Get MacroZone Pro",
+    getProHint: "No ads, barcode scanner and CSV export",
+    waterGoal: "Daily water goal (ml)",
+    yourData: "Your data",
+    backupNote:
+      "Your data lives on this phone. Export a backup before changing phones, and import it on the new one. If Android or iCloud backup is on, the system also keeps a copy.",
+    adPrivacyOptions: "Ad privacy choices",
+    shareUsageStats: "Share anonymous usage stats",
+    shareUsageStatsHint: "Helps us see which features are used. Never includes your meals or weight.",
     remindersUnsupported:
       "Reminders don't work in Expo Go on Android. They work in the installed app (a development or store build).",
   },
@@ -448,6 +618,96 @@ const translations: Record<Locale, TranslationMap> = {
     about: "Acerca de",
     privacyPolicy: "Política de privacidad",
     appVersion: "Versión {version}",
+    removeFavoriteTitle: "¿Quitar de favoritos?",
+    servingSizeError: "Ingresa el tamaño de la porción en gramos.",
+    amountError: "Ingresa cuánto comiste.",
+    scanBarcode: "Escanear código de barras",
+    favorites: "Favoritos",
+    favoriteChipHint:
+      "Completa el formulario con este alimento. Mantén presionado para quitarlo de favoritos.",
+    modeTotal: "Total consumido",
+    modePer100g: "Por 100 g",
+    amountGrams: "Cantidad (g)",
+    amountServings: "Porciones",
+    servingsUnit: "porciones",
+    servingSize: "Tamaño de la porción (g)",
+    portionTotal: "{grams} g: {calories} kcal · P {protein} g · C {carbs} g · G {fat} g",
+    storeUnavailable: "No se pudo conectar con la tienda. Revisa tu conexión e inténtalo de nuevo.",
+    proLifetime: "Pago único",
+    proAnnual: "Anual",
+    proMonthly: "Mensual",
+    proLifetimeNote: "Pagas una vez y es tuyo para siempre",
+    proSubscriptionNote: "Se renueva automáticamente. Cancela cuando quieras.",
+    proThanks: "¡Gracias! MacroZone Pro está activo.",
+    purchaseError: "No se pudo completar la compra. Inténtalo de nuevo.",
+    restorePurchases: "Restaurar compras",
+    restoreSuccess: "Se restauró tu compra de Pro.",
+    restoreNothing: "No encontramos una compra de Pro en esta cuenta.",
+    close: "Cerrar",
+    proSubtitle: "Apoya a MacroZone y desbloquea todo.",
+    proBenefitNoAds: "Sin anuncios",
+    proBenefitScanner: "Escáner de códigos de barras con Open Food Facts",
+    proBenefitCsv: "Exporta todo tu historial a CSV",
+    proActive: "MacroZone Pro está activo. ¡Gracias!",
+    purchasesUnavailable:
+      "Las compras no están disponibles en esta versión de la app. Instala MacroZone desde Google Play o la App Store para obtener Pro.",
+    proLegal:
+      "Las suscripciones se renuevan automáticamente hasta que las canceles en los ajustes de Google Play o la App Store. El pago único no se renueva.",
+    devProToggle: "Simular Pro (solo desarrollo)",
+    productNotFoundTitle: "Producto no encontrado",
+    productNotFound:
+      "Este código todavía no está en Open Food Facts. Puedes cargar la etiqueta nutricional a mano.",
+    enterManually: "Cargar a mano",
+    scanAgain: "Escanear otra vez",
+    lookupFailed: "No se pudo buscar el producto. Revisa tu conexión e inténtalo de nuevo.",
+    cameraPermission:
+      "MacroZone necesita la cámara para leer códigos de barras. Las imágenes no salen de tu teléfono.",
+    allowCamera: "Permitir cámara",
+    scanHint: "Apunta la cámara al código de barras del producto",
+    offCredit: "Datos nutricionales de Open Food Facts",
+    invalidWeight: "Ingresa un peso entre 20 y 400 kg.",
+    weightSaved: "Peso guardado",
+    logWeight: "Registrar peso",
+    deleteWeight: "Borrar este peso",
+    save: "Guardar",
+    water: "Agua",
+    removeGlass: "Quitar un vaso de agua",
+    addGlass: "Agregar un vaso de agua",
+    bodyWeight: "Peso corporal",
+    noWeightYet: "Todavía no has registrado tu peso",
+    weightChange30: "{change} kg en los últimos 30 días",
+    mealsCopied: "{count} comidas copiadas a hoy",
+    streakLabel: "Racha: {days} días seguidos registrando",
+    streakOneDay: "Racha de 1 día",
+    streakDays: "Racha de {days} días",
+    copyYesterday: "Copiar ayer",
+    copyDayToToday: "Copiar a hoy",
+    addedToFavorites: "{name} agregado a favoritos",
+    removedFromFavorites: "{name} quitado de favoritos",
+    removeFromFavorites: "Quitar de favoritos",
+    addToFavorites: "Agregar a favoritos",
+    exportBackup: "Exportar respaldo",
+    importBackup: "Importar respaldo",
+    exportCsv: "Exportar historial a CSV",
+    shareUnavailable: "Compartir archivos no está disponible en este dispositivo.",
+    exportError: "No se pudo crear el archivo. Inténtalo de nuevo.",
+    importError: "No se pudo leer el archivo. Inténtalo de nuevo.",
+    invalidBackup: "Este archivo no es un respaldo de MacroZone.",
+    importConfirm:
+      "Esto reemplaza todas tus comidas, metas y ajustes por el respaldo del {date}. No se puede deshacer.",
+    restore: "Restaurar",
+    backupRestored: "Respaldo restaurado",
+    proActiveShort: "MacroZone Pro",
+    proThanksShort: "Activo. ¡Gracias por tu apoyo!",
+    getPro: "Obtén MacroZone Pro",
+    getProHint: "Sin anuncios, escáner de códigos y exportación a CSV",
+    waterGoal: "Meta diaria de agua (ml)",
+    yourData: "Tus datos",
+    backupNote:
+      "Tus datos están en este teléfono. Exporta un respaldo antes de cambiar de celular e impórtalo en el nuevo. Si la copia de seguridad de Android o iCloud está activada, el sistema también guarda una copia.",
+    adPrivacyOptions: "Opciones de privacidad de anuncios",
+    shareUsageStats: "Compartir estadísticas de uso anónimas",
+    shareUsageStatsHint: "Nos ayuda a saber qué funciones se usan. Nunca incluye tus comidas ni tu peso.",
     remindersUnsupported:
       "Los recordatorios no funcionan en Expo Go en Android. Funcionan en la app instalada (una compilación de desarrollo o de la tienda).",
   },

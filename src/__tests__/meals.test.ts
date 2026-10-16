@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addMeal,
+  copyMealsToDay,
   deleteMeal,
+  deleteMeals,
   getMealsByDate,
   getRecentFoods,
   restoreMeal,
@@ -73,5 +75,30 @@ describe('meal storage', () => {
     await addMeal({ name: 'rice ', calories: 210, protein: 4, carbs: 46, fat: 0 });
     const foods = await getRecentFoods();
     expect(foods.map((f) => f.name)).toEqual(['rice ', 'Eggs']);
+  });
+});
+
+describe('copyMealsToDay', () => {
+  it('copies a day’s meals to another day at the same times, and can be undone', async () => {
+    await AsyncStorage.setItem(
+      'meals',
+      JSON.stringify([
+        meal({ id: 'dinner', name: 'Pasta', createdAt: new Date(2026, 9, 15, 20, 30).toISOString() }),
+        meal({ id: 'breakfast', name: 'Eggs', createdAt: new Date(2026, 9, 15, 8, 15).toISOString() }),
+      ]),
+    );
+
+    const copies = await copyMealsToDay(new Date(2026, 9, 15), new Date(2026, 9, 16));
+    const today = await getMealsByDate(new Date(2026, 9, 16));
+    expect(today.map((m) => [m.name, new Date(m.createdAt).getHours()])).toEqual([
+      ['Pasta', 20],
+      ['Eggs', 8],
+    ]);
+    expect(new Set(today.map((m) => m.id)).size).toBe(2);
+    expect(today.some((m) => m.id === 'dinner')).toBe(false);
+
+    await deleteMeals(copies.map((m) => m.id));
+    expect(await getMealsByDate(new Date(2026, 9, 16))).toEqual([]);
+    expect(await getMealsByDate(new Date(2026, 9, 15))).toHaveLength(2);
   });
 });
