@@ -36,7 +36,7 @@ export default function WaterCard({ date, ml, goal, onChange }: WaterCardProps) 
         <Ionicons name='water' size={22} color={WATER_COLOR} />
         <View style={styles.text}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>{t('water')}</Text>
-          <Text style={[styles.value, { color: colors.text }]}>
+          <Text style={[styles.value, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
             {format(ml)} / {format(goal)} ml
           </Text>
         </View>

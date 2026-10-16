@@ -12,11 +12,11 @@ MacroZone es una app para registrar calorías y macronutrientes. Esta política 
 
 ## Datos que guardas en la app
 
-Tus comidas, tu perfil (edad, altura, peso, género, nivel de actividad y objetivo) y tus ajustes se guardan **solo en tu teléfono**. MacroZone no tiene cuentas de usuario ni servidores propios, así que no recibimos esos datos.
+Tus comidas, tu perfil (edad, altura, peso, género, nivel de actividad y objetivo), tus registros de peso y agua, tus favoritos y tus ajustes se guardan **solo en tu teléfono**. MacroZone no tiene cuentas de usuario ni servidores propios, así que no recibimos esos datos.
 
 Si tienes activada la copia de seguridad de Android o de iCloud, el sistema puede incluir estos datos en la copia de tu cuenta de Google o Apple, según la configuración de tu teléfono.
 
-Para borrar tus datos, desinstala la app o borra sus datos desde los ajustes del teléfono.
+Puedes exportar un respaldo desde Ajustes → Tus datos; el archivo se guarda donde tú elijas. Para borrar tus datos, desinstala la app o borra sus datos desde los ajustes del teléfono.
 
 ## Anuncios (Google AdMob)
 
@@ -42,6 +42,12 @@ El archivo CSV con tu historial se crea en tu teléfono y solo se comparte donde
 
 Los recordatorios de comidas son notificaciones locales programadas en tu teléfono. No usamos notificaciones push ni enviamos datos para ellas.
 
+## Estadísticas de uso y reportes de errores
+
+Para saber qué funciones se usan, la app envía estadísticas de uso anónimas a PostHog: qué pantallas se abren y acciones como "comida agregada" o "respaldo exportado", junto con datos técnicos del dispositivo (modelo, sistema, idioma, versión de la app) y un identificador aleatorio. Nunca incluyen tus comidas, tu peso ni tu perfil. Puedes desactivarlas en Ajustes → Compartir estadísticas de uso anónimas. Más información: [Política de privacidad de PostHog](https://posthog.com/privacy).
+
+Si la app falla, envía un reporte de error a Sentry con datos técnicos (el error, el modelo del dispositivo y la versión del sistema y de la app) para que podamos corregirlo. No incluye tus datos personales. Más información: [Política de privacidad de Sentry](https://sentry.io/privacy/).
+
 ## Menores
 
 MacroZone está pensada para adultos y no está dirigida a menores de 13 años.
@@ -60,11 +66,11 @@ MacroZone is an app for tracking calories and macronutrients. This policy explai
 
 ## Data you store in the app
 
-Your meals, your profile (age, height, weight, gender, activity level and goal) and your settings are stored **only on your phone**. MacroZone has no user accounts and no servers of its own, so we never receive this data.
+Your meals, your profile (age, height, weight, gender, activity level and goal), your weight and water logs, your favorites and your settings are stored **only on your phone**. MacroZone has no user accounts and no servers of its own, so we never receive this data.
 
 If Android or iCloud backup is turned on, the system may include this data in the backup in your Google or Apple account, depending on your phone's settings.
 
-To delete your data, uninstall the app or clear its data from your phone's settings.
+You can export a backup from Settings → Your data; the file is saved wherever you choose. To delete your data, uninstall the app or clear its data from your phone's settings.
 
 ## Ads (Google AdMob)
 
@@ -89,6 +95,12 @@ The CSV file with your history is created on your phone and is shared only where
 ## Reminders
 
 Meal reminders are local notifications scheduled on your phone. We don't use push notifications or send any data for them.
+
+## Usage statistics and error reports
+
+To learn which features are used, the app sends anonymous usage statistics to PostHog: which screens are opened and actions such as "meal added" or "backup exported", with technical device data (model, system, language, app version) and a random identifier. They never include your meals, weight or profile. You can turn them off in Settings → Share anonymous usage stats. More information: [PostHog privacy policy](https://posthog.com/privacy).
+
+If the app crashes, it sends an error report to Sentry with technical data (the error, the device model and the system and app versions) so we can fix it. It doesn't include your personal data. More information: [Sentry privacy policy](https://sentry.io/privacy/).
 
 ## Children
 

@@ -66,9 +66,10 @@ export default function MacroCard({
     <View style={[styles.card, { borderLeftColor: color }]}> 
       <View style={styles.row}>
         <View style={styles.details}>
-          <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value}>{value}{unit}</Text>
-          <Text style={styles.goal}>/ {goal}{unit}</Text>
+          {/* Shrink rather than wrap on narrow phones (360 dp wide is common on Android). */}
+          <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
+          <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>{value}{unit}</Text>
+          <Text style={styles.goal} numberOfLines={1} adjustsFontSizeToFit>/ {goal}{unit}</Text>
         </View>
         <ProgressCircle progress={progress} color={color} />
       </View>
