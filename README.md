@@ -40,11 +40,11 @@ The app runs two ways:
 
 | | Expo Go | Development build |
 |---|---|---|
-| Start with | `npm run start:go` | `npm start` |
+| Start with | `npm start` (or `npm run android` / `npm run ios`) | `npm run start:dev` |
 | Ads, purchases, Android reminders | No (hidden or explained in the app) | Yes |
 | Everything else, including the barcode scanner | Yes | Yes |
 
-Because `expo-dev-client` is installed, `npx expo start` opens a **development build** by default. Use `npm run start:go` (or press `s` in the terminal) for Expo Go.
+Because `expo-dev-client` is installed, a bare `npx expo start` opens a **development build** by default, and with `--go` it sends the emulator to a browser page to pick a runtime. The npm scripts avoid both: `npm start` targets Expo Go directly (`--go` with `EXPO_NO_REDIRECT_PAGE=1`), and `npm run start:dev` targets a development build. Press `s` in the terminal to switch between them.
 
 To make a development build, either build locally:
 

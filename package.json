@@ -56,10 +56,10 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "start:go": "expo start --go",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "EXPO_NO_REDIRECT_PAGE=1 expo start --go",
+    "start:dev": "expo start --dev-client",
+    "android": "EXPO_NO_REDIRECT_PAGE=1 expo start --go --android",
+    "ios": "EXPO_NO_REDIRECT_PAGE=1 expo start --go --ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
