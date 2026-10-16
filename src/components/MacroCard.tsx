@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/i18n';
+import { formatNumber } from '@/utils/numbers';
 import { StyleSheet, Text, View } from 'react-native';
 import ProgressCircle from './ProgressCircle';
 
@@ -18,6 +20,7 @@ export default function MacroCard({
   unit = '',
   color,
 }: MacroCardProps) {
+  const { locale } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(
     () =>
@@ -44,12 +47,12 @@ export default function MacroCard({
         label: {
           fontSize: 14,
           color: colors.textSecondary,
+          marginBottom: 4,
         },
         value: {
           fontSize: 28,
           fontWeight: 'bold',
           color: colors.text,
-          marginTop: 4,
         },
         goal: {
           fontSize: 14,
@@ -64,11 +67,17 @@ export default function MacroCard({
 
   return (
     <View style={[styles.card, { borderLeftColor: color }]}> 
+      {/* Shrink rather than wrap on narrow phones (360 dp wide is common on Android). The label sits
+          above the progress ring and uses the full card width, so "Carbohidratos" keeps its size. */}
+      <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
       <View style={styles.row}>
         <View style={styles.details}>
-          <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value}>{value}{unit}</Text>
-          <Text style={styles.goal}>/ {goal}{unit}</Text>
+          <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
+            {formatNumber(value, locale)}{unit}
+          </Text>
+          <Text style={styles.goal} numberOfLines={1} adjustsFontSizeToFit>
+            / {formatNumber(goal, locale)}{unit}
+          </Text>
         </View>
         <ProgressCircle progress={progress} color={color} />
       </View>

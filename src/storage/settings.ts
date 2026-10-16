@@ -35,9 +35,15 @@ export type AppSettings = {
   theme: AppTheme;
   profile: UserProfile;
   onboardingComplete: boolean;
+  /** Daily water goal in ml. */
+  waterGoal: number;
+  /** Whether anonymous usage analytics may be sent. */
+  analyticsEnabled: boolean;
 };
 
-const APP_SETTINGS_KEY = "appSettings";
+export const APP_SETTINGS_KEY = "appSettings";
+
+const DEFAULT_WATER_GOAL = 2000;
 
 const defaultGoals: MacroGoals = {
   calories: 2000,
@@ -92,6 +98,8 @@ export const getDefaultSettings = (): AppSettings => {
     theme: "system",
     profile: getDefaultProfile(),
     onboardingComplete: false,
+    waterGoal: DEFAULT_WATER_GOAL,
+    analyticsEnabled: true,
   };
 };
 
@@ -118,6 +126,8 @@ export const getSettings = async (): Promise<AppSettings> => {
       profile: parsed.profile ?? getDefaultProfile(),
       // People who saved settings before onboarding existed have already set up the app.
       onboardingComplete: parsed.onboardingComplete ?? true,
+      waterGoal: parsed.waterGoal ?? DEFAULT_WATER_GOAL,
+      analyticsEnabled: parsed.analyticsEnabled ?? true,
     };
   } catch {
     return getDefaultSettings();
@@ -145,6 +155,8 @@ export const updateSettings = async (
     remindersEnabled: next.remindersEnabled ?? current.remindersEnabled,
     profile: next.profile ?? current.profile,
     onboardingComplete: next.onboardingComplete ?? current.onboardingComplete,
+    waterGoal: next.waterGoal ?? current.waterGoal,
+    analyticsEnabled: next.analyticsEnabled ?? current.analyticsEnabled,
   };
   await saveSettings(merged);
   return merged;

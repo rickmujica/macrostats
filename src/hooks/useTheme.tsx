@@ -5,6 +5,8 @@ import { useColorScheme } from 'react-native';
 
 type ThemeContextValue = {
   theme: AppTheme;
+  /** The theme in use: `theme`, or the device's appearance when `theme` is "system". */
+  scheme: 'light' | 'dark';
   colors: ThemeColors;
   setAppTheme: (theme: AppTheme) => Promise<void>;
 };
@@ -28,6 +30,7 @@ export function ThemeProvider({ children }: ThemeProviderProps): ReactElement {
   }, []);
 
   const effectiveTheme = theme === 'system' ? (systemScheme ?? 'dark') : theme;
+  const scheme = effectiveTheme === 'light' ? 'light' : 'dark';
   const colors = useMemo(() => getAppColors(effectiveTheme), [effectiveTheme]);
 
   const setAppTheme = async (nextTheme: AppTheme) => {
@@ -36,7 +39,7 @@ export function ThemeProvider({ children }: ThemeProviderProps): ReactElement {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, colors, setAppTheme }}>
+    <ThemeContext.Provider value={{ theme, scheme, colors, setAppTheme }}>
       {children}
     </ThemeContext.Provider>
   );

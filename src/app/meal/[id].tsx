@@ -2,6 +2,7 @@ import MealForm from '@/components/MealForm';
 import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
+import { track } from '@/services/analytics';
 import { getMealById, updateMeal, type Meal } from '@/storage/meals';
 import { useGlobalStyles } from '@/styles/global';
 import * as Haptics from 'expo-haptics';
@@ -51,6 +52,7 @@ export default function EditMealScreen() {
       headerAction={cancelButton}
       onSubmit={async (changes) => {
         await updateMeal(meal.id, changes);
+        track('meal_edited');
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         showToast(t('mealUpdatedToast'));
         router.back();

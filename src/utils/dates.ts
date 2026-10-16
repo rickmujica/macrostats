@@ -18,3 +18,16 @@ export const getWeekDays = (date: Date, locale: string): Date[] => {
   const start = addDays(day, -offset);
   return Array.from({ length: 7 }, (_, index) => addDays(start, index));
 };
+
+/** Local calendar day as YYYY-MM-DD, for keys that must not shift with time zones. */
+export const dateKey = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
+/** Parses a YYYY-MM-DD key back into a local date at midnight. */
+export const fromDateKey = (key: string): Date => {
+  const [year, month, day] = key.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};

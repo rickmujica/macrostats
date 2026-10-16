@@ -1,9 +1,10 @@
 import LabeledTextInput from '@/components/LabeledTextInput';
+import ThemedSwitch from '@/components/ThemedSwitch';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { UserProfile } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
-import { parseAmount } from '@/utils/numbers';
+import { formatInputNumber, parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useState, type ReactNode } from 'react';
 import {
@@ -12,7 +13,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -26,6 +26,8 @@ export type ProfileSubmitOptions = {
 type ProfileFormProps = {
   title: string;
   intro?: string;
+  /** Small print shown above the submit button, such as the health disclaimer. */
+  footnote?: string;
   submitLabel: string;
   initialProfile?: UserProfile;
   headerAction?: ReactNode;
@@ -72,13 +74,14 @@ function OptionRow<T extends string>({ options, selected, onSelect, styles }: Op
 export default function ProfileForm({
   title,
   intro,
+  footnote,
   submitLabel,
   initialProfile,
   headerAction,
   showRecalculateOption = false,
   onSubmit,
 }: ProfileFormProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const themeStyles = useGlobalStyles();
   const styles = useMemo(
@@ -152,6 +155,12 @@ export default function ProfileForm({
           fontSize: 12,
           marginTop: 4,
         },
+        footnote: {
+          fontSize: 12,
+          lineHeight: 17,
+          color: colors.textSecondary,
+          marginTop: 28,
+        },
         button: {
           backgroundColor: colors.primary,
           padding: 16,
@@ -168,9 +177,9 @@ export default function ProfileForm({
     [colors],
   );
 
-  const [age, setAge] = useState(initialProfile ? String(initialProfile.age) : '');
-  const [height, setHeight] = useState(initialProfile ? String(initialProfile.height) : '');
-  const [weight, setWeight] = useState(initialProfile ? String(initialProfile.weight) : '');
+  const [age, setAge] = useState(initialProfile ? formatInputNumber(initialProfile.age, locale) : '');
+  const [height, setHeight] = useState(initialProfile ? formatInputNumber(initialProfile.height, locale) : '');
+  const [weight, setWeight] = useState(initialProfile ? formatInputNumber(initialProfile.weight, locale) : '');
   const [gender, setGender] = useState<UserProfile['gender']>(initialProfile?.gender ?? 'male');
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>(
     initialProfile?.activityLevel ?? 'moderate',
@@ -280,13 +289,11 @@ export default function ProfileForm({
               <Text style={styles.switchLabel}>{t('recalculateGoalsLabel')}</Text>
               <Text style={styles.switchHint}>{t('recalculateGoalsHint')}</Text>
             </View>
-            <Switch
-              value={recalculateGoals}
-              onValueChange={setRecalculateGoals}
-              trackColor={{ false: colors.surface, true: colors.primary }}
-            />
+            <ThemedSwitch value={recalculateGoals} onValueChange={setRecalculateGoals} />
           </View>
         )}
+
+        {footnote ? <Text style={styles.footnote}>{footnote}</Text> : null}
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>{submitLabel}</Text>

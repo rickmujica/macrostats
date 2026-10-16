@@ -27,6 +27,7 @@ export default function ProfileScreen() {
     <ProfileForm
       title={t('yourProfile')}
       submitLabel={t('saveProfile')}
+      footnote={t('healthDisclaimer')}
       initialProfile={profile}
       showRecalculateOption
       headerAction={
