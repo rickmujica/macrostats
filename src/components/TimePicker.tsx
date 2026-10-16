@@ -30,6 +30,7 @@ export default function TimePicker({
     minute: '2-digit',
   });
   // Match the dialog's clock to the label's (en-US uses 12-hour, most other locales 24-hour).
+  // Android reads is24Hour and iOS reads locale.
   const is24Hour = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle !== 'h12';
 
   return (
@@ -43,6 +44,7 @@ export default function TimePicker({
           value={value}
           mode="time"
           is24Hour={is24Hour}
+          locale={locale.replace(/-/g, '_')}
           presentation="dialog"
           onValueChange={(_, selectedDate) => {
             setShow(false);
