@@ -1,7 +1,10 @@
 import { useToast } from '@/components/Toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
+import { track } from '@/services/analytics';
+import { toggleFavorite, useFavorites } from '@/storage/favorites';
 import { deleteMeal, restoreMeal, sameDay, type Meal } from '@/storage/meals';
+import { formatNumber } from '@/utils/numbers';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -57,6 +60,8 @@ export default function MealItem({ meal, onChange }: MealItemProps) {
   const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const { showToast } = useToast();
+  const { isFavorite } = useFavorites();
+  const favorite = isFavorite(name);
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -88,9 +93,9 @@ export default function MealItem({ meal, onChange }: MealItemProps) {
           color: colors.textSecondary,
           marginTop: 4,
         },
-        deleteButton: {
+        iconButton: {
           padding: 8,
-          marginLeft: 8,
+          marginLeft: 4,
         },
       }),
     [colors],
@@ -101,6 +106,13 @@ export default function MealItem({ meal, onChange }: MealItemProps) {
   const loggedAt = sameDay(created, new Date())
     ? time
     : `${created.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}, ${time}`;
+
+  const handleFavorite = async () => {
+    const nowFavorite = await toggleFavorite(meal);
+    Haptics.selectionAsync();
+    track('favorite_toggled', { favorite: nowFavorite });
+    showToast((nowFavorite ? t('addedToFavorites') : t('removedFromFavorites')).replace('{name}', name));
+  };
 
   const handleDelete = async () => {
     const removed = await deleteMeal(id);
@@ -137,12 +149,22 @@ export default function MealItem({ meal, onChange }: MealItemProps) {
         <View style={styles.details}>
           <Text style={styles.name}>{name}</Text>
           <Text style={styles.macros}>
-            {calories} {t('calories').slice(0, 3).toLowerCase()} • {protein}g {t('protein').slice(0, 1)} • {carbs}g {t('carbs').slice(0, 1)} • {fat}g {t('fat').slice(0, 1)}
+            {formatNumber(calories, locale)} {t('calories').slice(0, 3).toLowerCase()} • {formatNumber(protein, locale)}g {t('protein').slice(0, 1)} • {formatNumber(carbs, locale)}g {t('carbs').slice(0, 1)} • {formatNumber(fat, locale)}g {t('fat').slice(0, 1)}
           </Text>
           <Text style={styles.time}>{loggedAt}</Text>
         </View>
         <TouchableOpacity
-          style={styles.deleteButton}
+          style={styles.iconButton}
+          onPress={handleFavorite}
+          accessibilityRole='button'
+          accessibilityLabel={favorite ? t('removeFromFavorites') : t('addToFavorites')}
+          accessibilityState={{ selected: favorite }}
+          hitSlop={8}
+        >
+          <Ionicons name={favorite ? 'star' : 'star-outline'} size={20} color={favorite ? '#ffd93d' : colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={handleDelete}
           accessibilityRole='button'
           accessibilityLabel={`${t('delete')} ${name}`}

@@ -1,5 +1,6 @@
 import { t } from '@/i18n';
 import { sumMeals, type Meal } from '@/storage/meals';
+import { formatNumber } from '@/utils/numbers';
 
 /** Plain-text macro summary for sharing or copying. */
 export const buildDaySummary = (meals: Meal[], date: Date, locale: string): string => {
@@ -9,10 +10,10 @@ export const buildDaySummary = (meals: Meal[], date: Date, locale: string): stri
   return [
     `${t('appName')} ${t('dailySummary')} (${day})`,
     '',
-    `${t('calories')}: ${totals.calories}`,
-    `${t('protein')}: ${totals.protein}g`,
-    `${t('carbs')}: ${totals.carbs}g`,
-    `${t('fat')}: ${totals.fat}g`,
+    `${t('calories')}: ${formatNumber(totals.calories, locale)}`,
+    `${t('protein')}: ${formatNumber(totals.protein, locale)}g`,
+    `${t('carbs')}: ${formatNumber(totals.carbs, locale)}g`,
+    `${t('fat')}: ${formatNumber(totals.fat, locale)}g`,
     '',
     `${t('mealsLabel')}: ${meals.length}`,
   ].join('\n');

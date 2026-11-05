@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { sameDay, sumMeals, type Meal } from '@/storage/meals';
+import { formatNumber } from '@/utils/numbers';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type WeekChartProps = {
@@ -34,14 +35,14 @@ export default function WeekChart({ days, meals, calorieGoal, selectedDate, onSe
     <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <Text style={[styles.caption, { color: colors.textSecondary }]}>
         {average > 0
-          ? t('weeklyAverage').replace('{calories}', String(average))
+          ? t('weeklyAverage').replace('{calories}', formatNumber(average, locale))
           : t('noMealsWeek')}
       </Text>
       <View style={styles.plot}>
         {calorieGoal > 0 && (
           <View
             style={[styles.goalLine, { bottom: goalOffset + LABEL_HEIGHT, borderColor: colors.textSecondary }]}
-            accessibilityLabel={`${t('calories')} goal ${calorieGoal}`}
+            accessibilityLabel={t('calorieGoalLabel').replace('{calories}', formatNumber(calorieGoal, locale))}
           />
         )}
         {days.map((day, index) => {
@@ -56,7 +57,7 @@ export default function WeekChart({ days, meals, calorieGoal, selectedDate, onSe
               style={styles.column}
               onPress={() => onSelect(day)}
               accessibilityRole='button'
-              accessibilityLabel={`${day.toLocaleDateString(locale, { weekday: 'long' })}: ${total} kcal`}
+              accessibilityLabel={`${day.toLocaleDateString(locale, { weekday: 'long' })}: ${formatNumber(total, locale)} kcal`}
               accessibilityState={{ selected: isSelected }}
             >
               <View style={styles.barArea}>

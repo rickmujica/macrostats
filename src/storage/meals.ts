@@ -1,4 +1,6 @@
+import { createId } from '@/utils/ids';
 import { roundAmount } from '@/utils/numbers';
+import type { Portion } from '@/utils/portions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Meal = {
@@ -9,11 +11,16 @@ export type Meal = {
   carbs: number;
   fat: number;
   createdAt: string;
+  /** Set when the meal was logged from macros per 100 g and an amount. */
+  portion?: Portion;
 };
 
 export type MacroTotals = Pick<Meal, 'calories' | 'protein' | 'carbs' | 'fat'>;
 
-const MEALS_KEY = 'meals';
+export const MEALS_KEY = 'meals';
+
+const byNewestFirst = (a: Meal, b: Meal) =>
+  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
 export const sameDay = (dateA: Date, dateB: Date) =>
   dateA.getFullYear() === dateB.getFullYear() &&
@@ -76,15 +83,43 @@ export const getMealsByWeek = async (date: Date): Promise<Meal[]> => {
 
 export const addMeal = async (
   meal: Omit<Meal, 'id' | 'createdAt'>,
+  createdAt = new Date(),
 ): Promise<Meal> => {
   const meals = await getMeals();
   const newMeal: Meal = {
     ...meal,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
+    id: createId(),
+    createdAt: createdAt.toISOString(),
   };
-  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify([newMeal, ...meals]));
+  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify([newMeal, ...meals].sort(byNewestFirst)));
   return newMeal;
+};
+
+/**
+ * Copies every meal logged on `from` to the day `to`, keeping each meal's time of day.
+ * Returns the new meals so the copy can be undone with deleteMeals.
+ */
+export const copyMealsToDay = async (from: Date, to: Date): Promise<Meal[]> => {
+  const meals = await getMeals();
+  const copies = meals
+    .filter((meal) => sameDay(new Date(meal.createdAt), from))
+    .map((meal) => {
+      const created = new Date(meal.createdAt);
+      const copiedAt = new Date(to);
+      copiedAt.setHours(created.getHours(), created.getMinutes(), created.getSeconds(), 0);
+      return { ...meal, id: createId(), createdAt: copiedAt.toISOString() };
+    });
+
+  if (copies.length > 0) {
+    await AsyncStorage.setItem(MEALS_KEY, JSON.stringify([...copies, ...meals].sort(byNewestFirst)));
+  }
+  return copies;
+};
+
+export const deleteMeals = async (ids: string[]): Promise<void> => {
+  const remove = new Set(ids);
+  const meals = await getMeals();
+  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(meals.filter((meal) => !remove.has(meal.id))));
 };
 
 export const updateMeal = async (
@@ -92,7 +127,10 @@ export const updateMeal = async (
   changes: Omit<Meal, 'id' | 'createdAt'>,
 ): Promise<void> => {
   const meals = await getMeals();
-  const updated = meals.map((meal) => (meal.id === id ? { ...meal, ...changes } : meal));
+  // A meal edited from per-100 g back to totals loses its portion, so replace it rather than merge.
+  const updated = meals.map((meal) =>
+    meal.id === id ? { ...meal, ...changes, portion: changes.portion } : meal,
+  );
   await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(updated));
 };
 
@@ -107,9 +145,7 @@ export const deleteMeal = async (id: string): Promise<Meal | undefined> => {
 
 export const restoreMeal = async (meal: Meal): Promise<void> => {
   const meals = await getMeals();
-  const restored = [meal, ...meals.filter((existing) => existing.id !== meal.id)].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  const restored = [meal, ...meals.filter((existing) => existing.id !== meal.id)].sort(byNewestFirst);
   await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(restored));
 };
 
