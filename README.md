@@ -151,4 +151,4 @@ Differences from the phone app:
 
 - The first visit skips onboarding with a sample profile and fills the last week with meals, weigh-ins and water (`src/storage/demo.web.ts`). It only happens once per browser.
 - Messages and confirmations use the browser's dialogs (`src/utils/alert.web.ts`), because React Native Web's `Alert` does nothing.
-- No notifications, ads, purchases or barcode scanning.
+- No notifications, ads or in-app purchases.
