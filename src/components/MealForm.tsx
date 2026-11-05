@@ -4,13 +4,13 @@ import { useTranslation } from '@/i18n';
 import { removeFavorite, useFavorites, type FavoriteFood } from '@/storage/favorites';
 import { getRecentFoods, type Meal, type MacroTotals } from '@/storage/meals';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import { formatInputNumber, formatNumber, parseAmount, roundAmount } from '@/utils/numbers';
 import { macrosForGrams, type Portion } from '@/utils/portions';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -128,7 +128,7 @@ export default function MealForm({
   }, [locale]);
 
   const confirmRemoveFavorite = (favorite: FavoriteFood) => {
-    Alert.alert(t('removeFavoriteTitle'), favorite.name, [
+    alert(t('removeFavoriteTitle'), favorite.name, [
       { text: t('cancel'), style: 'cancel' },
       { text: t('delete'), style: 'destructive', onPress: () => removeFavorite(favorite.id) },
     ]);
@@ -136,13 +136,13 @@ export default function MealForm({
 
   const handleSubmit = async () => {
     if (!name.trim() || (caloriesBlank && estimatedCalories === 0)) {
-      Alert.alert(t('error'), t('enterMealError'));
+      alert(t('error'), t('enterMealError'));
       return;
     }
 
     const parsedCalories = caloriesBlank ? estimatedCalories : parseAmount(calories);
     if (parsedCalories === null || parsedProtein === null || parsedCarbs === null || parsedFat === null) {
-      Alert.alert(t('error'), t('invalidNumber'));
+      alert(t('error'), t('invalidNumber'));
       return;
     }
 
@@ -156,7 +156,7 @@ export default function MealForm({
     let meal: MealInput;
     if (mode === 'per100') {
       if (grams === null || grams <= 0) {
-        Alert.alert(t('error'), unit === 'serving' && !perServing ? t('servingSizeError') : t('amountError'));
+        alert(t('error'), unit === 'serving' && !perServing ? t('servingSizeError') : t('amountError'));
         return;
       }
       meal = {

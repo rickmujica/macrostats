@@ -6,6 +6,7 @@ import { setAppLocale, useTranslation } from '@/i18n';
 import { ProProvider } from '@/pro/ProProvider';
 import { initAnalytics, trackScreen } from '@/services/analytics';
 import { initMonitoring, wrapRoot } from '@/services/monitoring';
+import { seedDemo } from '@/storage/demo';
 import { calculateGoals, getSettings, updateSettings, type UserProfile } from '@/storage/settings';
 import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -31,6 +32,7 @@ function AppContent() {
 
   useEffect(() => {
     const load = async () => {
+      await seedDemo();
       const settings = await getSettings();
       setAppLocale(settings.locale);
       initAnalytics(settings.analyticsEnabled);

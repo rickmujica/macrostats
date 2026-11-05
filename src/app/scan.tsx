@@ -1,6 +1,7 @@
 import { useTranslation } from '@/i18n';
 import { usePro } from '@/pro/ProProvider';
 import { track } from '@/services/analytics';
+import { alert } from '@/utils/alert';
 import { lookupBarcode } from '@/utils/openFoodFacts';
 import { setPendingScan } from '@/utils/scanResult';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e'] as const;
@@ -47,7 +48,7 @@ export default function ScanScreen() {
       const food = await lookupBarcode(data, locale);
       if (!food) {
         track('barcode_scanned', { found: false });
-        Alert.alert(t('productNotFoundTitle'), t('productNotFound'), [
+        alert(t('productNotFoundTitle'), t('productNotFound'), [
           { text: t('enterManually'), onPress: () => router.back() },
           { text: t('scanAgain'), onPress: resume },
         ]);
@@ -57,7 +58,7 @@ export default function ScanScreen() {
       setPendingScan(food);
       router.back();
     } catch {
-      Alert.alert(t('error'), t('lookupFailed'), [
+      alert(t('error'), t('lookupFailed'), [
         { text: t('cancel'), style: 'cancel', onPress: () => router.back() },
         { text: t('scanAgain'), onPress: resume },
       ]);
