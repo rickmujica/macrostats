@@ -142,3 +142,13 @@ GitHub Actions runs the same three on pushes to `dev` and `master` and on pull r
 ## Branches
 
 New work happens on `dev`. `master` holds the released state and is updated by merging pull requests from `dev`.
+
+## Web demo
+
+The app also runs in the browser as a public demo (the portfolio embeds it). `npx expo export -p web` builds it into `dist/`, and `vercel.json` has the build settings, so importing the repository in Vercel is enough.
+
+Differences from the phone app:
+
+- The first visit skips onboarding with a sample profile and fills the last week with meals, weigh-ins and water (`src/storage/demo.web.ts`). It only happens once per browser.
+- Messages and confirmations use the browser's dialogs (`src/utils/alert.web.ts`), because React Native Web's `Alert` does nothing.
+- No notifications, ads, purchases or barcode scanning.

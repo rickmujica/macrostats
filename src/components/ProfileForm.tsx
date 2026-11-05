@@ -4,11 +4,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/i18n';
 import { UserProfile } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import { formatInputNumber, parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useState, type ReactNode } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -193,7 +193,7 @@ export default function ProfileForm({
     const parsedWeight = parseAmount(weight);
 
     if (!parsedAge || !parsedHeight || !parsedWeight) {
-      Alert.alert(t('error'), t('invalidProfile'));
+      alert(t('error'), t('invalidProfile'));
       return;
     }
 

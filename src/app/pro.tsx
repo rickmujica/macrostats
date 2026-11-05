@@ -5,11 +5,12 @@ import { useTranslation } from '@/i18n';
 import { usePro, type ProPackage } from '@/pro/ProProvider';
 import { track } from '@/services/analytics';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const KIND_ORDER = { annual: 0, lifetime: 1, monthly: 2, other: 3 };
 
@@ -28,7 +29,7 @@ export default function ProScreen() {
       return;
     }
     loadPackages()
-      .catch(() => Alert.alert(t('error'), t('storeUnavailable')))
+      .catch(() => alert(t('error'), t('storeUnavailable')))
       .finally(() => setLoading(false));
   }, [purchasesAvailable, loadPackages, t]);
 
@@ -56,7 +57,7 @@ export default function ProScreen() {
         router.back();
       }
     } catch {
-      Alert.alert(t('error'), t('purchaseError'));
+      alert(t('error'), t('purchaseError'));
     } finally {
       setBusy(false);
     }
@@ -69,9 +70,9 @@ export default function ProScreen() {
       if (restored) {
         track('pro_restored');
       }
-      Alert.alert(t('restorePurchases'), restored ? t('restoreSuccess') : t('restoreNothing'));
+      alert(t('restorePurchases'), restored ? t('restoreSuccess') : t('restoreNothing'));
     } catch {
-      Alert.alert(t('error'), t('purchaseError'));
+      alert(t('error'), t('purchaseError'));
     } finally {
       setBusy(false);
     }

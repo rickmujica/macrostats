@@ -19,6 +19,7 @@ import {
   type UserProfile,
 } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import {
   cancelMealReminders,
   hasReminderPermission,
@@ -38,7 +39,6 @@ import { router, useFocusEffect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   Linking,
   ScrollView,
   StyleSheet,
@@ -146,7 +146,7 @@ export default function SettingsScreen() {
   const rescheduleOrTurnOff = async (schedule: ReminderScheduleItem[]) => {
     if (!(await scheduleMealReminders(schedule))) {
       await turnRemindersOff();
-      Alert.alert(t('remindersLabel'), t('remindersScheduleError'));
+      alert(t('remindersLabel'), t('remindersScheduleError'));
     }
   };
 
@@ -157,25 +157,25 @@ export default function SettingsScreen() {
     }
 
     if (!remindersSupported) {
-      Alert.alert(t('remindersLabel'), t('remindersUnsupported'));
+      alert(t('remindersLabel'), t('remindersUnsupported'));
       return;
     }
 
     const permission = await requestPermissions();
     if (permission === 'blocked') {
-      Alert.alert(t('remindersLabel'), t('remindersBlocked'), [
+      alert(t('remindersLabel'), t('remindersBlocked'), [
         { text: t('cancel'), style: 'cancel' },
         { text: t('openSettings'), onPress: () => Linking.openSettings() },
       ]);
       return;
     }
     if (permission === 'denied') {
-      Alert.alert(t('error'), t('reminderEnabledError'));
+      alert(t('error'), t('reminderEnabledError'));
       return;
     }
 
     if (!(await scheduleMealReminders(reminderSchedule))) {
-      Alert.alert(t('remindersLabel'), t('remindersScheduleError'));
+      alert(t('remindersLabel'), t('remindersScheduleError'));
       return;
     }
 
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
     setCarbs(formatInputNumber(recommended.carbs, appLocale));
     setFat(formatInputNumber(recommended.fat, appLocale));
     Haptics.selectionAsync();
-    Alert.alert(t('macroGoals'), t('goalsCalculated'));
+    alert(t('macroGoals'), t('goalsCalculated'));
   };
 
   const saveSettings = async () => {
@@ -228,7 +228,7 @@ export default function SettingsScreen() {
       goals.fat === null ||
       parsedWaterGoal === null
     ) {
-      Alert.alert(t('error'), t('invalidNumber'));
+      alert(t('error'), t('invalidNumber'));
       return;
     }
 
@@ -243,7 +243,7 @@ export default function SettingsScreen() {
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(t('success'), t('settingsSaved'));
+    alert(t('success'), t('settingsSaved'));
   };
 
   const toggleAnalytics = async (value: boolean) => {
@@ -261,12 +261,12 @@ export default function SettingsScreen() {
         { mimeType: 'application/json', uti: 'public.json', dialogTitle: t('exportBackup') },
       );
       if (!shared) {
-        Alert.alert(t('error'), t('shareUnavailable'));
+        alert(t('error'), t('shareUnavailable'));
         return;
       }
       track('backup_exported');
     } catch {
-      Alert.alert(t('error'), t('exportError'));
+      alert(t('error'), t('exportError'));
     }
   };
 
@@ -275,7 +275,7 @@ export default function SettingsScreen() {
     try {
       text = await pickTextFile();
     } catch {
-      Alert.alert(t('error'), t('importError'));
+      alert(t('error'), t('importError'));
       return;
     }
     if (text === null) {
@@ -286,7 +286,7 @@ export default function SettingsScreen() {
     try {
       backup = parseBackup(text);
     } catch (error) {
-      Alert.alert(t('error'), error instanceof InvalidBackupError ? t('invalidBackup') : t('importError'));
+      alert(t('error'), error instanceof InvalidBackupError ? t('invalidBackup') : t('importError'));
       return;
     }
 
@@ -295,7 +295,7 @@ export default function SettingsScreen() {
       month: 'long',
       year: 'numeric',
     });
-    Alert.alert(t('importBackup'), t('importConfirm').replace('{date}', exportedOn), [
+    alert(t('importBackup'), t('importConfirm').replace('{date}', exportedOn), [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('restore'),
@@ -331,12 +331,12 @@ export default function SettingsScreen() {
         dialogTitle: t('exportCsv'),
       });
       if (!shared) {
-        Alert.alert(t('error'), t('shareUnavailable'));
+        alert(t('error'), t('shareUnavailable'));
         return;
       }
       track('csv_exported', { meals: meals.length });
     } catch {
-      Alert.alert(t('error'), t('exportError'));
+      alert(t('error'), t('exportError'));
     }
   };
 

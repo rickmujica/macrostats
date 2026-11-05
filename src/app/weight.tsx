@@ -7,12 +7,13 @@ import { deleteWeight, getWeights, logWeight } from '@/storage/body';
 import { sameDay } from '@/storage/meals';
 import { getSettings, updateSettings } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import { dateKey, fromDateKey } from '@/utils/dates';
 import { formatInputNumber, parseAmount } from '@/utils/numbers';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 /** Logs body weight for one day (today unless a `date` param is passed). */
 export default function WeightScreen() {
@@ -45,7 +46,7 @@ export default function WeightScreen() {
   const save = async () => {
     const kg = parseAmount(weight);
     if (!kg || kg < 20 || kg > 400) {
-      Alert.alert(t('error'), t('invalidWeight'));
+      alert(t('error'), t('invalidWeight'));
       return;
     }
     const entries = await logWeight(date, kg);

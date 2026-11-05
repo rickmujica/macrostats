@@ -9,11 +9,12 @@ import { getWeights, type WeightEntry } from '@/storage/body';
 import { clearAllMeals, getMeals, Meal, sameDay } from '@/storage/meals';
 import { getSettings } from '@/storage/settings';
 import { useGlobalStyles } from '@/styles/global';
+import { alert } from '@/utils/alert';
 import { addDays, getWeekDays } from '@/utils/dates';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HistoryScreen() {
   const { t, locale } = useTranslation();
@@ -36,7 +37,7 @@ export default function HistoryScreen() {
   }, []);
 
   const handleClearAll = () => {
-    Alert.alert(t('clearAllTitle'), t('clearAllMessage'), [
+    alert(t('clearAllTitle'), t('clearAllMessage'), [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('delete'),
